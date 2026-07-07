@@ -1,0 +1,12 @@
+import { setRequestLocale } from "next-intl/server";
+import StubPage from "@/components/stub-page";
+
+export default async function LearnPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  return <StubPage titleKey="learn" />;
+}

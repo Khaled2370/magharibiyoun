@@ -1,0 +1,881 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum ContentType {
+  ARTICLE
+  INITIATIVE
+  HISTORICAL_ENTRY
+  PERSONALITY
+  CULTURAL
+  MEDIA_ITEM
+  EDUCATIONAL
+  LEARNING_PATH
+  TIMELINE_EVENT
+  EVENT
+  MAP_LOCATION
+  DOCUMENT
+  ACADEMIC_PUBLICATION
+  GLOSSARY_TERM
+  PAGE
+}
+
+enum TranslationStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ValidationLevel {
+  NONE
+  COMMUNITY
+  VERIFIED
+  ACADEMIC
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BLOCKED
+}
+
+enum ContributionKind {
+  NEW_CONTENT
+  CORRECTION
+  TRANSLATION
+}
+
+enum ContributionStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  CHANGES_REQUESTED
+  ACCEPTED
+  REJECTED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ReviewDecision {
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+}
+
+enum InitiativeState {
+  ACTIVE
+  HISTORICAL
+  SUSPENDED
+  IN_CONSTRUCTION
+}
+
+enum ActorType {
+  INSTITUTION
+  ASSOCIATION
+  CITIZEN_COLLECTIVE
+  COMPANY
+  MEDIA
+  THINK_TANK
+  UNIVERSITY
+  FESTIVAL
+  DIGITAL_PLATFORM
+  DIASPORA_NETWORK
+}
+
+enum MediaKind {
+  PODCAST
+  VIDEO
+  INTERVIEW
+  CONFERENCE
+  DEBATE
+  TESTIMONY
+  PORTRAIT
+  SHOW
+}
+
+enum MediaFileType {
+  IMAGE
+  AUDIO
+  PDF
+}
+
+enum AgeRange {
+  KIDS
+  TEENS
+  ADULTS
+  TEACHERS
+  FAMILIES
+}
+
+enum EduFormat {
+  SHEET
+  QUIZ
+  DOSSIER
+  VIDEO
+  TIMELINE
+  MAP
+  GLOSSARY
+}
+
+enum Difficulty {
+  INTRO
+  EASY
+  MEDIUM
+  ADVANCED
+}
+
+enum AmazighVariant {
+  KABYLE
+  TACHELHIT
+  TARIFIT
+  CHAOUI
+  ATLAS_TAMAZIGHT
+  TUAREG
+  STANDARD
+  OTHER
+}
+
+enum ScriptType {
+  LATIN
+  TIFINAGH
+  ARABIC
+}
+
+enum FollowTargetType {
+  CATEGORY
+  TAG
+  AUTHOR
+  COUNTRY
+  CONTENT
+}
+
+enum NotificationType {
+  CONTRIBUTION_STATUS
+  FOLLOW_UPDATE
+  SYSTEM
+}
+
+enum ReportTargetType {
+  CONTENT
+  USER
+  COMMENT
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ModerationActionType {
+  WARNING
+  QUARANTINE
+  TEMP_BLOCK
+  SUSPENSION
+  CONTENT_REMOVAL
+  RESTORE
+}
+
+enum ReplyRequestStatus {
+  RECEIVED
+  IN_REVIEW
+  PUBLISHED
+  REJECTED
+}
+
+enum CategoryModule {
+  HISTORY_PERIOD
+  CULTURAL_DOMAIN
+  OPINION_CATEGORY
+  INITIATIVE_DOMAIN
+  DISCIPLINE
+  MEDIA_THEME
+  EDUCATION_THEME
+  NEWSLETTER_TOPIC
+  GENERAL
+}
+
+// ─────────────────────────────────────────────
+// Utilisateurs & communauté
+// ─────────────────────────────────────────────
+
+model User {
+  id               String     @id @default(cuid())
+  email            String     @unique
+  passwordHash     String?
+  displayName      String
+  username         String?    @unique
+  bio              String?
+  countryCode      String?
+  preferredLocale  String     @default("ar")
+  avatarUrl        String?
+  status           UserStatus @default(ACTIVE)
+  identityVerified Boolean    @default(false)
+  publicProfile    Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  roles              UserRole[]
+  createdContents    Content[]          @relation("ContentCreator")
+  authoredArticles   ArticleDetail[]    @relation("ArticleAuthor")
+  managedInitiatives InitiativeDetail[] @relation("InitiativeManager")
+  contentVersions    ContentVersion[]   @relation("VersionEditor")
+  contributions      Contribution[]
+  reviews            EditorialReview[]  @relation("Reviewer")
+  favorites          Favorite[]
+  follows            Follow[]
+  notifications      Notification[]
+  badges             UserBadge[]
+  uploadedMedia      MediaFile[]        @relation("MediaUploader")
+  comments           Comment[]
+  reportsMade        ModerationReport[] @relation("Reporter")
+  handledReports     ModerationReport[] @relation("ReportHandler")
+  moderationActions  ModerationAction[] @relation("Moderator")
+}
+
+model Role {
+  id     Int    @id @default(autoincrement())
+  key    String @unique
+  labels Json
+
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id     Int    @id @default(autoincrement())
+  key    String @unique
+  labels Json
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  userId String
+  roleId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model Follow {
+  id         Int              @id @default(autoincrement())
+  userId     String
+  targetType FollowTargetType
+  targetId   String
+  createdAt  DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetId])
+}
+
+model Favorite {
+  userId    String
+  contentId Int
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, contentId])
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    String
+  type      NotificationType
+  payload   Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Badge {
+  id          Int    @id @default(autoincrement())
+  key         String @unique
+  labels      Json
+  description Json?
+
+  users UserBadge[]
+}
+
+model UserBadge {
+  userId    String
+  badgeId   Int
+  awardedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+}
+
+model NewsletterSubscriber {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  locale    String   @default("ar")
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+
+  topics SubscriberTopic[]
+}
+
+model SubscriberTopic {
+  subscriberId Int
+  categoryId   Int
+
+  subscriber NewsletterSubscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  category   Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([subscriberId, categoryId])
+}
+
+// ─────────────────────────────────────────────
+// Référentiels communs
+// ─────────────────────────────────────────────
+
+model Language {
+  code        String  @id
+  name        String
+  dir         String  @default("ltr")
+  isInterface Boolean @default(false)
+  isActive    Boolean @default(true)
+
+  translations ContentTranslation[]
+}
+
+model Country {
+  code      String  @id
+  labels    Json
+  flagEmoji String?
+
+  regions  Region[]
+  contents ContentCountry[]
+}
+
+model Region {
+  id          Int    @id @default(autoincrement())
+  countryCode String
+  labels      Json
+
+  country         Country          @relation(fields: [countryCode], references: [code], onDelete: Cascade)
+  culturalDetails CulturalDetail[] @relation("CulturalOrigin")
+}
+
+model Category {
+  id        Int            @id @default(autoincrement())
+  module    CategoryModule @default(GENERAL)
+  parentId  Int?
+  labels    Json
+  sortOrder Int            @default(0)
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+
+  contents          ContentCategory[]
+  historicalEntries HistoricalDetail[] @relation("HistoricalPeriod")
+  subscriberTopics  SubscriberTopic[]
+}
+
+model Tag {
+  id     Int  @id @default(autoincrement())
+  labels Json
+
+  contents ContentTag[]
+}
+
+model MediaFile {
+  id           Int           @id @default(autoincrement())
+  type         MediaFileType @default(IMAGE)
+  url          String
+  width        Int?
+  height       Int?
+  caption      Json?
+  credit       String?
+  license      String?
+  uploadedById String?
+  createdAt    DateTime      @default(now())
+
+  uploadedBy User? @relation("MediaUploader", fields: [uploadedById], references: [id])
+
+  contents          ContentMedia[]
+  initiativeLogos   InitiativeDetail[]  @relation("InitiativeLogo")
+  personalityPhotos PersonalityDetail[] @relation("PersonalityPhoto")
+  documentFiles     DocumentDetail[]    @relation("DocumentFile")
+  academicPdfs      AcademicDetail[]    @relation("AcademicPdf")
+}
+
+model Source {
+  id        Int      @id @default(autoincrement())
+  kind      String   @default("web")
+  author    String?
+  title     String
+  publisher String?
+  year      Int?
+  url       String?
+  isbn      String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  contents ContentSource[]
+}
+
+// ─────────────────────────────────────────────
+// Socle de contenu (fiche mère + traductions)
+// ─────────────────────────────────────────────
+
+model Content {
+  id              Int             @id @default(autoincrement())
+  type            ContentType
+  validationLevel ValidationLevel @default(COMMUNITY)
+  isFeatured      Boolean         @default(false)
+  createdById     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  createdBy User? @relation("ContentCreator", fields: [createdById], references: [id])
+
+  translations  ContentTranslation[]
+  countries     ContentCountry[]
+  categories    ContentCategory[]
+  tags          ContentTag[]
+  media         ContentMedia[]
+  sources       ContentSource[]
+  versions      ContentVersion[]
+  favorites     Favorite[]
+  contributions Contribution[]
+  comments      Comment[]
+  replyRequests RightOfReplyRequest[]
+  relatedFrom   RelatedContent[]      @relation("RelatedFrom")
+  relatedTo     RelatedContent[]      @relation("RelatedTo")
+
+  article     ArticleDetail?
+  initiative  InitiativeDetail?
+  historical  HistoricalDetail?
+  personality PersonalityDetail?
+  cultural    CulturalDetail?
+  mediaItem   MediaItemDetail?
+  educational EducationalDetail?
+  timeline    TimelineEventDetail?
+  event       EventDetail?
+  location    MapLocationDetail?
+  document    DocumentDetail?
+  academic    AcademicDetail?
+  quiz        Quiz?
+
+  pathSteps      LearningPathStep[]  @relation("PathContent")
+  stepTargets    LearningPathStep[]  @relation("StepTarget")
+  eduDerivatives EducationalDetail[] @relation("EduSource")
+
+  @@index([type])
+}
+
+model ContentTranslation {
+  id             Int               @id @default(autoincrement())
+  contentId      Int
+  locale         String
+  title          String
+  slug           String
+  summary        String?
+  body           String?
+  seoTitle       String?
+  seoDescription String?
+  status         TranslationStatus @default(DRAFT)
+  isOriginal     Boolean           @default(false)
+  isOutdated     Boolean           @default(false)
+  publishedAt    DateTime?
+  updatedAt      DateTime          @updatedAt
+
+  content  Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [locale], references: [code])
+
+  @@unique([contentId, locale])
+  @@unique([locale, slug])
+  @@index([status])
+}
+
+model ContentCountry {
+  contentId   Int
+  countryCode String
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  country Country @relation(fields: [countryCode], references: [code], onDelete: Cascade)
+
+  @@id([contentId, countryCode])
+}
+
+model ContentCategory {
+  contentId  Int
+  categoryId Int
+
+  content  Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, categoryId])
+}
+
+model ContentTag {
+  contentId Int
+  tagId     Int
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, tagId])
+}
+
+model ContentMedia {
+  contentId   Int
+  mediaFileId Int
+  sortOrder   Int @default(0)
+
+  content   Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  mediaFile MediaFile @relation(fields: [mediaFileId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, mediaFileId])
+}
+
+model ContentSource {
+  contentId Int
+  sourceId  Int
+  sortOrder Int @default(0)
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  source  Source  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, sourceId])
+}
+
+model RelatedContent {
+  fromId Int
+  toId   Int
+
+  from Content @relation("RelatedFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   Content @relation("RelatedTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@id([fromId, toId])
+}
+
+model ContentVersion {
+  id         Int      @id @default(autoincrement())
+  contentId  Int
+  locale     String?
+  snapshot   Json
+  note       String?
+  editedById String?
+  createdAt  DateTime @default(now())
+
+  content  Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  editedBy User?   @relation("VersionEditor", fields: [editedById], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// Détails par type de contenu
+// ─────────────────────────────────────────────
+
+model ArticleDetail {
+  contentId         Int     @id
+  authorUserId      String?
+  authorName        String?
+  authorCountryCode String?
+  readingTimeMin    Int?
+
+  content    Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  authorUser User?   @relation("ArticleAuthor", fields: [authorUserId], references: [id])
+}
+
+model InitiativeDetail {
+  contentId      Int             @id
+  actorType      ActorType?
+  state          InitiativeState @default(ACTIVE)
+  foundedYear    Int?
+  founders       String?
+  officialLinks  Json?
+  logoMediaId    Int?
+  isVerified     Boolean         @default(false)
+  lastVerifiedAt DateTime?
+  managedById    String?
+
+  content   Content    @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  logo      MediaFile? @relation("InitiativeLogo", fields: [logoMediaId], references: [id])
+  managedBy User?      @relation("InitiativeManager", fields: [managedById], references: [id])
+}
+
+model HistoricalDetail {
+  contentId        Int  @id
+  periodCategoryId Int?
+  yearStart        Int?
+  yearEnd          Int?
+
+  content        Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  periodCategory Category? @relation("HistoricalPeriod", fields: [periodCategoryId], references: [id])
+}
+
+model PersonalityDetail {
+  contentId    Int     @id
+  birthYear    Int?
+  deathYear    Int?
+  isLiving     Boolean @default(false)
+  photoMediaId Int?
+  works        Json?
+  quotes       Json?
+
+  content Content    @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  photo   MediaFile? @relation("PersonalityPhoto", fields: [photoMediaId], references: [id])
+}
+
+model CulturalDetail {
+  contentId       Int             @id
+  originRegionId  Int?
+  contentLanguage String?
+  amazighVariant  AmazighVariant?
+  script          ScriptType?
+
+  content      Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  originRegion Region? @relation("CulturalOrigin", fields: [originRegionId], references: [id])
+}
+
+model MediaItemDetail {
+  contentId      Int             @id
+  kind           MediaKind       @default(PODCAST)
+  externalUrl    String
+  durationMin    Int?
+  guests         String?
+  host           String?
+  showName       String?
+  transcript     String?
+  mediaLanguage  String?
+  amazighVariant AmazighVariant?
+  publishedOn    DateTime?
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model EducationalDetail {
+  contentId       Int         @id
+  ageRange        AgeRange?
+  format          EduFormat   @default(SHEET)
+  difficulty      Difficulty?
+  sourceContentId Int?
+  downloadable    Boolean     @default(false)
+
+  content       Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  sourceContent Content? @relation("EduSource", fields: [sourceContentId], references: [id])
+}
+
+model LearningPathStep {
+  id              Int   @id @default(autoincrement())
+  pathContentId   Int
+  sortOrder       Int   @default(0)
+  targetContentId Int?
+  titleOverride   Json?
+
+  path   Content  @relation("PathContent", fields: [pathContentId], references: [id], onDelete: Cascade)
+  target Content? @relation("StepTarget", fields: [targetContentId], references: [id])
+}
+
+model Quiz {
+  id        Int @id @default(autoincrement())
+  contentId Int @unique
+
+  content   Content        @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+}
+
+model QuizQuestion {
+  id           Int   @id @default(autoincrement())
+  quizId       Int
+  sortOrder    Int   @default(0)
+  prompt       Json
+  choices      Json
+  correctIndex Int
+  explanation  Json?
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model TimelineEventDetail {
+  contentId  Int     @id
+  yearStart  Int
+  yearEnd    Int?
+  eventKind  String?
+  importance Int     @default(1)
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model EventDetail {
+  contentId       Int       @id
+  startsAt        DateTime
+  endsAt          DateTime?
+  venue           String?
+  isOnline        Boolean   @default(false)
+  organizer       String?
+  registrationUrl String?
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model MapLocationDetail {
+  contentId    Int     @id
+  lat          Float
+  lng          Float
+  locationKind String?
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model DocumentDetail {
+  contentId           Int     @id
+  fileMediaId         Int?
+  docKind             String?
+  rightsNote          String
+  authorOrInstitution String?
+  docYear             Int?
+
+  content Content    @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  file    MediaFile? @relation("DocumentFile", fields: [fileMediaId], references: [id])
+}
+
+model AcademicDetail {
+  contentId      Int     @id
+  discipline     String?
+  institution    String?
+  pdfMediaId     Int?
+  license        String?
+  doi            String?
+  externalUrl    String?
+  academicStatus String?
+
+  content Content    @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  pdf     MediaFile? @relation("AcademicPdf", fields: [pdfMediaId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// Travail éditorial
+// ─────────────────────────────────────────────
+
+model Contribution {
+  id           Int                @id @default(autoincrement())
+  userId       String
+  kind         ContributionKind
+  contentId    Int?
+  targetLocale String?
+  message      String?
+  proposedText String?
+  status       ContributionStatus @default(DRAFT)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content? @relation(fields: [contentId], references: [id])
+  reviews EditorialReview[]
+
+  @@index([status])
+}
+
+model EditorialReview {
+  id             Int            @id @default(autoincrement())
+  contributionId Int
+  reviewerId     String
+  decision       ReviewDecision
+  comments       String?
+  checklist      Json?
+  createdAt      DateTime       @default(now())
+
+  contribution Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+  reviewer     User         @relation("Reviewer", fields: [reviewerId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// Modération & gouvernance
+// ─────────────────────────────────────────────
+
+model ModerationReport {
+  id             Int              @id @default(autoincrement())
+  reporterUserId String?
+  reporterEmail  String?
+  targetType     ReportTargetType
+  targetId       String
+  reason         String
+  details        String?
+  severity       Int              @default(1)
+  status         ReportStatus     @default(OPEN)
+  handledById    String?
+  createdAt      DateTime         @default(now())
+  resolvedAt     DateTime?
+
+  reporter  User? @relation("Reporter", fields: [reporterUserId], references: [id])
+  handledBy User? @relation("ReportHandler", fields: [handledById], references: [id])
+
+  @@index([status])
+}
+
+model ModerationAction {
+  id           Int                  @id @default(autoincrement())
+  moderatorId  String
+  targetType   ReportTargetType
+  targetId     String
+  action       ModerationActionType
+  reason       String
+  durationDays Int?
+  reportId     Int?
+  createdAt    DateTime             @default(now())
+
+  moderator User @relation("Moderator", fields: [moderatorId], references: [id])
+}
+
+model RightOfReplyRequest {
+  id             Int                @id @default(autoincrement())
+  requesterName  String
+  requesterEmail String
+  contentId      Int
+  replyText      String
+  status         ReplyRequestStatus @default(RECEIVED)
+  decisionNote   String?
+  createdAt      DateTime           @default(now())
+  decidedAt      DateTime?
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  contentId Int
+  parentId  Int?
+  body      String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentReplies")
+}
