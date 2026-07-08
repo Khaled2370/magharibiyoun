@@ -69,7 +69,7 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       dir={dir}
-      className={`${kufi.variable} ${naskh.variable} ${notoSans.variable}`}
+      className={`${kufi.variable} ${naskh.variable} ${notoSans.variable} scroll-smooth`}
     >
       <body className="min-h-screen antialiased">
         <NextIntlClientProvider messages={messages}>

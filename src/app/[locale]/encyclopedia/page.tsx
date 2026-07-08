@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import ContentCard from "@/components/content/content-card";
+import JumpNav from "@/components/content/jump-nav";
 import { getPublishedList } from "@/lib/content";
 
 export default async function EncyclopediaPage({
@@ -33,16 +34,25 @@ export default async function EncyclopediaPage({
       {sections.length === 0 ? (
         <p className="mt-10 text-mutedink">{t("empty")}</p>
       ) : (
-        sections.map((s) => (
-          <section key={s.key} className="mt-10">
-            <h2 className="mb-4 text-xl font-medium">{t(s.key)}</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {s.items.map((item) => (
-                <ContentCard key={item.id} item={item} locale={locale} />
-              ))}
-            </div>
-          </section>
-        ))
+        <>
+          <JumpNav
+            items={sections.map((s) => ({
+              key: s.key,
+              label: t(s.key),
+              count: s.items.length,
+            }))}
+          />
+          {sections.map((s) => (
+            <section key={s.key} id={s.key} className="scroll-mt-20 pt-10">
+              <h2 className="mb-4 text-xl font-medium">{t(s.key)}</h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {s.items.map((item) => (
+                  <ContentCard key={item.id} item={item} locale={locale} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </>
       )}
     </div>
   );
