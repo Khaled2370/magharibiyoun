@@ -13,6 +13,8 @@ const COVERS = {
   food: "food.svg",
   network: "network.svg",
   media: "media.svg",
+  heritage: "heritage.svg",
+  equestrian: "equestrian.svg",
 } as const;
 
 export type CoverKey = keyof typeof COVERS;
