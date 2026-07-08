@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import RelatedList from "@/components/content/related-list";
+import SourcesList from "@/components/content/sources-list";
 import { prisma } from "@/lib/prisma";
 import {
   fmtDate,
@@ -80,6 +81,7 @@ export default async function OpinionDetailPage({
         ))}
       </div>
 
+      <SourcesList sources={c.sources} />
       <RelatedList detail={item} locale={locale} />
     </div>
   );

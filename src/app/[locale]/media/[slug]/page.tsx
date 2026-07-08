@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ExternalLink } from "lucide-react";
 import RelatedList from "@/components/content/related-list";
+import SourcesList from "@/components/content/sources-list";
 import YoutubeEmbed from "@/components/content/youtube-embed";
 import { prisma } from "@/lib/prisma";
 import { fmtDate, getDetail, paragraphs } from "@/lib/content";
@@ -110,6 +111,7 @@ export default async function MediaDetailPage({
         {t("watchYoutube")}
       </a>
 
+      <SourcesList sources={item.content.sources} />
       <RelatedList detail={item} locale={locale} />
     </div>
   );

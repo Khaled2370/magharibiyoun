@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import RelatedList from "@/components/content/related-list";
+import SourcesList from "@/components/content/sources-list";
 import { prisma } from "@/lib/prisma";
 import {
   fmtDate,
@@ -179,32 +180,7 @@ export default async function EncyclopediaDetailPage({
         </section>
       ) : null}
 
-      {c.sources.length > 0 ? (
-        <section className="mt-8 border-t border-ligne pt-5">
-          <h2 className="mb-2 text-lg font-medium">{t("sources")}</h2>
-          <ol className="list-decimal space-y-1 ps-5 text-sm leading-relaxed text-mutedink">
-            {c.sources.map((s) => (
-              <li key={s.sourceId}>
-                {s.source.author ? `${s.source.author} — ` : ""}
-                {s.source.url ? (
-                  <a
-                    href={s.source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-majorelle hover:underline"
-                  >
-                    {s.source.title}
-                  </a>
-                ) : (
-                  s.source.title
-                )}
-                {s.source.publisher ? `، ${s.source.publisher}` : ""}
-                {s.source.year ? ` (${s.source.year})` : ""}
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
+      <SourcesList sources={c.sources} />
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-ligne pt-4 text-sm text-mutedink">
         <span>
