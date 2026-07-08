@@ -20,7 +20,10 @@ npm run dev          # → http://localhost:3009 (port 3009 : convention Khaled 
 npx prisma migrate dev   # migrations base de données
 npx prisma db seed       # langues, pays, rôles
 ```
-Base locale : PostgreSQL `magharibiyoun_db` (voir .env).
+Base locale : PostgreSQL `magharibiyoun_db` (voir .env — DATABASE_URL + DIRECT_URL identiques en local).
+
+## Déploiement (voir DEPLOIEMENT.md)
+Cible gratuite : **GitHub (repo privé) → Vercel Hobby → Neon Free**. Repo git initialisé (branche main). Réglages prod déjà en place : build webpack standard (dev garde turbopack), `postinstall: prisma generate`, `trustHost: true` (Auth.js), `directUrl` Neon dans schema.prisma, mot de passe admin seedable via `ADMIN_PASSWORD`. Push via HTTPS + Git Credential Manager (gh non installé — installation refusée par UAC). Migrations prod : `npx prisma migrate deploy` + `db seed` lancés depuis la machine locale avec les URLs Neon en variables d'environnement de session (jamais écrites dans .env).
 
 ## Stack
 Next.js 15 (App Router, Turbopack) · TypeScript · Tailwind v4 · next-intl v4 (`localePrefix: "as-needed"`, defaultLocale `ar`) · Prisma 6 + PostgreSQL · lucide-react. Auth.js prévu (pas encore installé).
