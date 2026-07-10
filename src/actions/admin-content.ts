@@ -328,8 +328,56 @@ export async function saveContent(formData: FormData) {
     },
   });
 
+  const anyPublished = LOCALES.some(
+    (l) => String(formData.get(`status_${l}`) ?? "") === "PUBLISHED",
+  );
+  if (anyPublished) {
+    const pendingContribution = await prisma.contribution.findFirst({
+      where: { contentId, status: { in: ["SUBMITTED", "IN_REVIEW"] } },
+    });
+    if (pendingContribution) {
+      await prisma.contribution.update({
+        where: { id: pendingContribution.id },
+        data: { status: "ACCEPTED" },
+      });
+      await prisma.editorialReview.create({
+        data: {
+          contributionId: pendingContribution.id,
+          reviewerId: session.user.id,
+          decision: "APPROVED",
+        },
+      });
+    }
+  }
+
   revalidatePath("/", "layout");
   redirect({ href: { pathname: "/admin", query: { saved: "1" } }, locale });
+}
+
+export async function rejectContribution(formData: FormData) {
+  const locale = String(formData.get("uiLocale") ?? "ar");
+  const session = await requireEditor(locale);
+  const contributionId = Number(formData.get("contributionId"));
+  const comments = String(formData.get("comments") ?? "").trim() || null;
+  if (!Number.isNaN(contributionId)) {
+    await prisma.contribution.update({
+      where: { id: contributionId },
+      data: { status: "REJECTED" },
+    });
+    await prisma.editorialReview.create({
+      data: {
+        contributionId,
+        reviewerId: session.user.id,
+        decision: "REJECTED",
+        comments,
+      },
+    });
+  }
+  revalidatePath("/", "layout");
+  redirect({
+    href: { pathname: "/admin/contributions", query: { rejected: "1" } },
+    locale,
+  });
 }
 
 export async function deleteContent(formData: FormData) {

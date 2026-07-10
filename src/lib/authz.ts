@@ -17,3 +17,11 @@ export async function requireEditor(locale: string): Promise<Session> {
   }
   return session!;
 }
+
+export async function requireUser(locale: string): Promise<Session> {
+  const session = await auth();
+  if (!session?.user) {
+    redirect({ href: "/login", locale });
+  }
+  return session!;
+}

@@ -92,6 +92,11 @@ export const routing = defineRouting({
       fr: "/admin/modifier/[id]",
       en: "/admin/edit/[id]",
     },
+    "/admin/contributions": {
+      ar: "/الإدارة/المساهمات",
+      fr: "/admin/contributions",
+      en: "/admin/contributions",
+    },
   },
 });
 

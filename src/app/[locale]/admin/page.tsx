@@ -33,14 +33,19 @@ export default async function AdminDashboard({
     ? (sp.type as ContentType)
     : undefined;
 
-  const contents = await prisma.content.findMany({
-    where: typeFilter ? { type: typeFilter } : undefined,
-    include: {
-      translations: { select: { locale: true, title: true, status: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: 200,
-  });
+  const [contents, pendingCount] = await Promise.all([
+    prisma.content.findMany({
+      where: typeFilter ? { type: typeFilter } : undefined,
+      include: {
+        translations: { select: { locale: true, title: true, status: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 200,
+    }),
+    prisma.contribution.count({
+      where: { status: { in: ["SUBMITTED", "IN_REVIEW"] } },
+    }),
+  ]);
 
   const statusTone = (status?: string) =>
     status === "PUBLISHED"
@@ -55,13 +60,26 @@ export default async function AdminDashboard({
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-medium">{t("title")}</h1>
-        <Link
-          href="/admin/new"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-majorelle px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          {t("newContent")}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/contributions"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-ligne bg-white px-4 py-2 text-sm font-medium text-mutedink transition-colors hover:border-majorelle hover:text-majorelle"
+          >
+            {t("contributionsTitle")}
+            {pendingCount > 0 ? (
+              <span className="rounded-full bg-terracotta px-2 py-0.5 text-xs font-medium text-white">
+                {pendingCount}
+              </span>
+            ) : null}
+          </Link>
+          <Link
+            href="/admin/new"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-majorelle px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            {t("newContent")}
+          </Link>
+        </div>
       </div>
 
       {sp.saved ? (
