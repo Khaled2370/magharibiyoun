@@ -14,6 +14,7 @@ import type {
 import { prisma } from "@/lib/prisma";
 import { requireEditor } from "@/lib/authz";
 import { slugify } from "@/lib/slug";
+import { uploadImage } from "@/lib/cloudinary";
 import { redirect } from "@/i18n/navigation";
 
 const LOCALES = ["ar", "fr", "en"] as const;
@@ -119,6 +120,29 @@ export async function saveContent(formData: FormData) {
     await prisma.contentCategory.createMany({
       data: categoryIds.map((cid) => ({ contentId, categoryId: cid })),
     });
+  }
+
+  const coverFile = formData.get("coverImage");
+  let coverError: string | null = null;
+  if (coverFile instanceof File && coverFile.size > 0) {
+    try {
+      const uploaded = await uploadImage(coverFile);
+      const media = await prisma.mediaFile.create({
+        data: {
+          url: uploaded.url,
+          type: "IMAGE",
+          width: uploaded.width,
+          height: uploaded.height,
+          uploadedById: session.user.id,
+        },
+      });
+      await prisma.contentMedia.deleteMany({ where: { contentId } });
+      await prisma.contentMedia.create({
+        data: { contentId, mediaFileId: media.id, sortOrder: 0 },
+      });
+    } catch (e) {
+      coverError = e instanceof Error ? e.message : "فشل رفع الصورة.";
+    }
   }
 
   if (type === "ARTICLE") {
@@ -351,6 +375,16 @@ export async function saveContent(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
+  if (coverError) {
+    redirect({
+      href: {
+        pathname: "/admin/edit/[id]",
+        params: { id: String(contentId) },
+        query: { coverError: "1" },
+      },
+      locale,
+    });
+  }
   redirect({ href: { pathname: "/admin", query: { saved: "1" } }, locale });
 }
 

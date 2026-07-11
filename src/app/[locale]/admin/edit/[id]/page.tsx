@@ -13,7 +13,7 @@ export default async function AdminEditPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; coverError?: string }>;
 }) {
   const { locale, id: rawId } = await params;
   setRequestLocale(locale);
@@ -68,6 +68,11 @@ export default async function AdminEditPage({
       {sp.error === "empty" ? (
         <p className="mt-4 rounded-lg bg-terracottal px-4 py-2.5 text-sm text-terracotta">
           {t("errorEmpty")}
+        </p>
+      ) : null}
+      {sp.coverError ? (
+        <p className="mt-4 rounded-lg bg-terracottal px-4 py-2.5 text-sm text-terracotta">
+          {t("coverUploadError")}
         </p>
       ) : null}
       <div className="mt-6">

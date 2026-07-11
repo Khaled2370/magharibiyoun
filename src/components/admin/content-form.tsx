@@ -21,6 +21,7 @@ export const adminContentInclude = {
   countries: true,
   categories: true,
   sources: { include: { source: true }, orderBy: { sortOrder: "asc" } },
+  media: { include: { mediaFile: true }, orderBy: { sortOrder: "asc" } },
 } satisfies Prisma.ContentInclude;
 
 export type AdminContent = Prisma.ContentGetPayload<{
@@ -218,6 +219,28 @@ export default async function ContentForm({
             </div>
           </div>
         ) : null}
+      </section>
+
+      <section className={cardCls}>
+        <h2 className="mb-4 text-lg font-medium">{t("coverSection")}</h2>
+        {content?.media[0]?.mediaFile ? (
+          <div className="mb-4 flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={content.media[0].mediaFile.url}
+              alt=""
+              className="h-20 w-32 rounded-lg border border-ligne object-cover"
+            />
+            <span className="text-xs text-mutedink">{t("currentCover")}</span>
+          </div>
+        ) : null}
+        <input
+          type="file"
+          name="coverImage"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="block w-full text-sm text-mutedink file:mr-3 file:rounded-lg file:border file:border-ligne file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-majorelle hover:file:border-majorelle"
+        />
+        <p className="mt-1 text-xs text-mutedink">{t("coverHint")}</p>
       </section>
 
       <section className={cardCls}>
