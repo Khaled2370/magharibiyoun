@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev --turbopack -p 3009",
-    "build": "prisma migrate deploy && next build",
+    "build": "prisma migrate deploy && tsx scripts/reset-admin-password.ts && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint"
