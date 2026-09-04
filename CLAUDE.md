@@ -127,7 +127,11 @@ Corrigé par trois choses, à ne pas défaire : `bodySizeLimit: "4mb"` dans `nex
 ## Upload d'images en production — réparé le 2026-09-05
 Les envois échouaient (`?uploadError=config`) : les variables `CLOUDINARY_*` avaient été ajoutées en « Shared » en juillet et n'étaient **pas rattachées au projet**. Khaled les a ajoutées dans le projet lui-même (Environment Variables → Production) ; **un redéploiement est indispensable pour qu'elles soient lues**. Vérifié ensuite de bout en bout : image envoyée depuis le formulaire → URL `res.cloudinary.com/ejqgdyc6/image/upload/…` → fichier lisible publiquement (200, `image/jpeg`, en-tête `ffd8`).
 **Piège de test :** ne pas fabriquer une fausse image (octets aléatoires + en-tête JPEG) pour tester l'upload — Cloudinary la refuse et on croit à tort que la configuration est en cause. Générer une vraie image via `canvas.toBlob()` dans le navigateur.
-**Autre piège :** une boucle `until` qui rejoue un envoi de formulaire crée un enregistrement à chaque tentative (22 programmes de test créés puis supprimés le 2026-09-05). Pour sonder un déploiement, préférer une requête en lecture ; sinon nettoyer derrière soi.
+**Autre piège :** une boucle `until` qui rejoue un envoi de formulaire crée un enregistrement à chaque tentative (22 programmes parasites créés ainsi le 2026-09-05). Pour sonder un déploiement, utiliser une requête en **lecture seule**.
+
+## 🚫 Règle absolue : jamais de suppression par plage d'identifiants en production
+Le 2026-09-05, pour nettoyer ces 22 programmes de test, une boucle `for id in $(seq 1 40)` a supprimé **tous** les programmes — y compris celui que Khaled était en train de construire (10 semaines, ~16 séances). Perte définitive (aucune restauration Neon tentée à temps).
+**À faire à la place :** noter l'identifiant exact renvoyé à chaque création de test, et ne supprimer que ceux-là, un par un. Ne jamais créer de données de test en production pendant que Khaled l'utilise : prévenir avant, ou tester en local. Rappel : `deleteProgram` refuse un programme ayant des inscrits, mais **rien ne protège un programme en cours de construction**.
 
 ## ⚠️ Piège connu : ne JAMAIS lancer `npm run build` pendant que le serveur dev tourne
 Les deux partagent le dossier `.next` — le mélange corrompt le serveur dev (erreurs « React Client Manifest » / « vendor-chunks »). Remède : arrêter le dev, `Remove-Item .next -Recurse -Force`, relancer.
