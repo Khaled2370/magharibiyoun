@@ -1,6 +1,7 @@
 import type {
   ActorType,
   AmazighVariant,
+  CategoryModule,
   ContentType,
   InitiativeState,
   PrismaClient,
@@ -120,11 +121,7 @@ export async function createEntry(
 
 export async function findOrCreateCategory(
   prisma: PrismaClient,
-  module:
-    | "HISTORY_PERIOD"
-    | "CULTURAL_DOMAIN"
-    | "OPINION_CATEGORY"
-    | "INITIATIVE_DOMAIN",
+  module: CategoryModule,
   labels: { ar: string; fr: string; en: string },
   sortOrder = 0,
 ): Promise<number> {

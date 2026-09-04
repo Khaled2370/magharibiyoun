@@ -82,6 +82,41 @@ export const routing = defineRouting({
       fr: "/apprendre/[slug]",
       en: "/learn/[slug]",
     },
+    "/learn/programs": {
+      ar: "/تعلم/برامج",
+      fr: "/apprendre/programmes",
+      en: "/learn/programs",
+    },
+    "/learn/programs/[slug]": {
+      ar: "/تعلم/برامج/[slug]",
+      fr: "/apprendre/programmes/[slug]",
+      en: "/learn/programs/[slug]",
+    },
+    "/learn/dashboard": {
+      ar: "/تعلم/لوحتي",
+      fr: "/apprendre/tableau-de-bord",
+      en: "/learn/dashboard",
+    },
+    "/learn/my-programs": {
+      ar: "/تعلم/برامجي",
+      fr: "/apprendre/mes-programmes",
+      en: "/learn/my-programs",
+    },
+    "/learn/calendar": {
+      ar: "/تعلم/التقويم",
+      fr: "/apprendre/calendrier",
+      en: "/learn/calendar",
+    },
+    "/learn/notes": {
+      ar: "/تعلم/ملاحظاتي",
+      fr: "/apprendre/mes-notes",
+      en: "/learn/notes",
+    },
+    "/learn/session/[slug]": {
+      ar: "/تعلم/حصة/[slug]",
+      fr: "/apprendre/seance/[slug]",
+      en: "/learn/session/[slug]",
+    },
     "/admin": {
       ar: "/الإدارة",
       fr: "/admin",
@@ -101,6 +136,31 @@ export const routing = defineRouting({
       ar: "/الإدارة/المساهمات",
       fr: "/admin/contributions",
       en: "/admin/contributions",
+    },
+    "/admin/programs": {
+      ar: "/الإدارة/برامج",
+      fr: "/admin/programmes",
+      en: "/admin/programs",
+    },
+    "/admin/programs/new": {
+      ar: "/الإدارة/برامج/جديد",
+      fr: "/admin/programmes/nouveau",
+      en: "/admin/programs/new",
+    },
+    "/admin/programs/[id]": {
+      ar: "/الإدارة/برامج/[id]",
+      fr: "/admin/programmes/[id]",
+      en: "/admin/programs/[id]",
+    },
+    "/admin/programs/[id]/sessions/[sessionId]": {
+      ar: "/الإدارة/برامج/[id]/حصص/[sessionId]",
+      fr: "/admin/programmes/[id]/seances/[sessionId]",
+      en: "/admin/programs/[id]/sessions/[sessionId]",
+    },
+    "/admin/calendar": {
+      ar: "/الإدارة/التقويم",
+      fr: "/admin/calendrier",
+      en: "/admin/calendar",
     },
   },
 });

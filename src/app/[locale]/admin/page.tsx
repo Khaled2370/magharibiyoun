@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ContentType } from "@prisma/client";
-import { Plus } from "lucide-react";
+import { GraduationCap, Plus } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireEditor } from "@/lib/authz";
 import { fmtDate } from "@/lib/content";
@@ -30,6 +30,7 @@ export default async function AdminDashboard({
   await requireEditor(locale);
   const sp = await searchParams;
   const t = await getTranslations("admin");
+  const tl = await getTranslations("lms");
 
   const typeFilter = TYPES.includes(sp.type as ContentType)
     ? (sp.type as ContentType)
@@ -62,7 +63,14 @@ export default async function AdminDashboard({
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-medium">{t("title")}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/programs"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-ligne bg-white px-4 py-2 text-sm font-medium text-mutedink transition-colors hover:border-majorelle hover:text-majorelle"
+          >
+            <GraduationCap className="h-4 w-4" aria-hidden />
+            {tl("adminPrograms")}
+          </Link>
           <Link
             href="/admin/contributions"
             className="inline-flex items-center gap-1.5 rounded-lg border border-ligne bg-white px-4 py-2 text-sm font-medium text-mutedink transition-colors hover:border-majorelle hover:text-majorelle"

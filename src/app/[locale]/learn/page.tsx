@@ -1,9 +1,10 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { AgeRange, EduFormat } from "@prisma/client";
-import { Map } from "lucide-react";
+import { GraduationCap, Map } from "lucide-react";
 import ContentCard from "@/components/content/content-card";
 import { listInclude, type ListItem } from "@/lib/content";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { Link } from "@/i18n/navigation";
 
 const AGE_RANGES = ["KIDS", "TEENS", "ADULTS", "TEACHERS", "FAMILIES"] as const;
@@ -30,6 +31,22 @@ export default async function LearnPage({
   const t = await getTranslations("learn");
   const tn = await getTranslations("nav");
   const tc = await getTranslations("content");
+  const tl = await getTranslations("lms");
+
+  // Bandeau en haut : reprendre son programme si l'élève en suit un,
+  // sinon inviter à découvrir le catalogue.
+  const session = await auth();
+  const userId = session?.user?.id;
+  const [activeEnrollment, programCount] = await Promise.all([
+    userId
+      ? prisma.enrollment.findFirst({
+          where: { userId, status: { not: "DROPPED" }, program: { status: "ACTIVE" } },
+          include: { program: { select: { title: true } } },
+          orderBy: { enrolledAt: "desc" },
+        })
+      : Promise.resolve(null),
+    prisma.program.count({ where: { status: "ACTIVE" } }),
+  ]);
 
   const ageFilter = AGE_RANGES.includes(sp.age as (typeof AGE_RANGES)[number])
     ? (sp.age as AgeRange)
@@ -71,6 +88,36 @@ export default async function LearnPage({
         {t("pageIntro")}
       </p>
 
+      {activeEnrollment ? (
+        <Link
+          href="/learn/dashboard"
+          className="mt-6 flex items-center gap-4 rounded-xl border border-oasis bg-oasisl p-5 transition-opacity hover:opacity-90"
+        >
+          <GraduationCap className="h-8 w-8 shrink-0 text-oasis" aria-hidden />
+          <div>
+            <div className="text-xs font-medium text-oasis">
+              {tl("continueLearning")}
+            </div>
+            <div className="mt-1 font-medium text-encre">
+              {activeEnrollment.program.title}
+            </div>
+            <p className="mt-1 text-sm text-mutedink">{tl("dashboardTitle")}</p>
+          </div>
+        </Link>
+      ) : programCount > 0 ? (
+        <Link
+          href="/learn/programs"
+          className="mt-6 flex items-center gap-4 rounded-xl border border-oasis bg-oasisl p-5 transition-opacity hover:opacity-90"
+        >
+          <GraduationCap className="h-8 w-8 shrink-0 text-oasis" aria-hidden />
+          <div>
+            <div className="text-xs font-medium text-oasis">{tl("catalogTitle")}</div>
+            <div className="mt-1 font-medium text-encre">{tl("catalogCta")}</div>
+            <p className="mt-1 text-sm text-mutedink">{tl("catalogIntro")}</p>
+          </div>
+        </Link>
+      ) : null}
+
       {path ? (
         <Link
           href={{ pathname: "/learn/[slug]", params: { slug: path.slug } }}
@@ -87,7 +134,10 @@ export default async function LearnPage({
         </Link>
       ) : null}
 
-      <div className="mt-8 flex flex-wrap items-center gap-4">
+      <h2 className="mt-10 text-xl font-medium">{t("libraryTitle")}</h2>
+      <p className="mt-1 text-sm text-mutedink">{t("libraryIntro")}</p>
+
+      <div className="mt-6 flex flex-wrap items-center gap-4">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="me-1 text-xs font-medium text-mutedink">
             {t("filterAge")}:

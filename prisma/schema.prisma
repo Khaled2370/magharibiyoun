@@ -207,6 +207,50 @@ enum CategoryModule {
   GENERAL
 }
 
+// Plateforme e-learning (programmes → semaines → séances → blocs)
+
+enum ProgramStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum WeekKind {
+  LEARNING
+  REVIEW
+  EXAM
+}
+
+enum SessionStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  LOCKED
+}
+
+enum ContentBlockType {
+  VIDEO
+  TEXT
+  PDF
+  IMAGE
+  LINK
+}
+
+enum LinkKind {
+  ARTICLE
+  SITE
+  PODCAST
+  VIDEO
+  DOCUMENT
+  OTHER
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+}
+
 // ─────────────────────────────────────────────
 // Utilisateurs & communauté
 // ─────────────────────────────────────────────
@@ -243,6 +287,10 @@ model User {
   reportsMade        ModerationReport[] @relation("Reporter")
   handledReports     ModerationReport[] @relation("ReportHandler")
   moderationActions  ModerationAction[] @relation("Moderator")
+
+  enrollments     Enrollment[]
+  sessionProgress SessionProgress[]
+  personalNotes   PersonalNote[]
 }
 
 model Role {
@@ -429,6 +477,8 @@ model MediaFile {
   personalityPhotos PersonalityDetail[] @relation("PersonalityPhoto")
   documentFiles     DocumentDetail[]    @relation("DocumentFile")
   academicPdfs      AcademicDetail[]    @relation("AcademicPdf")
+  programCovers     Program[]           @relation("ProgramCover")
+  contentBlocks     ContentBlock[]
 }
 
 model Source {
@@ -878,4 +928,132 @@ model Comment {
   content Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
   parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies Comment[] @relation("CommentReplies")
+}
+
+// ─────────────────────────────────────────────
+// Plateforme e-learning (تعلّم)
+// Modèle dédié, séparé du socle Content/ContentTranslation :
+// contenu en arabe uniquement, hiérarchie stricte et ouverture datée.
+// ─────────────────────────────────────────────
+
+model Program {
+  id            Int           @id @default(autoincrement())
+  slug          String        @unique
+  title         String
+  description   String?
+  coverMediaId  Int?
+  durationWeeks Int?
+  status        ProgramStatus @default(DRAFT)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  coverMedia  MediaFile?    @relation("ProgramCover", fields: [coverMediaId], references: [id])
+  weeks       ProgramWeek[]
+  enrollments Enrollment[]
+
+  @@index([status])
+}
+
+model ProgramWeek {
+  id         Int       @id @default(autoincrement())
+  programId  Int
+  weekNumber Int
+  title      String?
+  kind       WeekKind  @default(LEARNING)
+  opensAt    DateTime?
+
+  program  Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
+  sessions ProgramSession[]
+
+  @@unique([programId, weekNumber])
+}
+
+// Nommé ProgramSession (et non Session) pour ne pas entrer en collision
+// avec le type Session de next-auth dans les fichiers qui utilisent les deux.
+model ProgramSession {
+  id          Int           @id @default(autoincrement())
+  weekId      Int
+  slug        String        @unique
+  title       String
+  description String?
+  orderInWeek Int           @default(0)
+  instructor  String?
+  durationMin Int?
+  publishAt   DateTime?
+  status      SessionStatus @default(DRAFT)
+  isMandatory Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  week     ProgramWeek       @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  blocks   ContentBlock[]
+  progress SessionProgress[]
+  notes    PersonalNote[]
+
+  @@index([weekId])
+  @@index([publishAt])
+}
+
+model ContentBlock {
+  id               Int              @id @default(autoincrement())
+  sessionId        Int
+  sortOrder        Int              @default(0)
+  type             ContentBlockType
+  isSupplementary  Boolean          @default(false)
+  title            String?
+  videoUrl         String?
+  videoTitle       String?
+  videoInstructor  String?
+  videoDurationMin Int?
+  textBody         String?
+  mediaFileId      Int?
+  linkUrl          String?
+  linkLabel        String?
+  linkKind         LinkKind?
+  createdAt        DateTime         @default(now())
+
+  session   ProgramSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  mediaFile MediaFile?     @relation(fields: [mediaFileId], references: [id])
+
+  @@index([sessionId])
+}
+
+model Enrollment {
+  id          Int              @id @default(autoincrement())
+  userId      String
+  programId   Int
+  status      EnrollmentStatus @default(ACTIVE)
+  enrolledAt  DateTime         @default(now())
+  completedAt DateTime?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, programId])
+  @@index([programId])
+}
+
+model SessionProgress {
+  userId      String
+  sessionId   Int
+  completedAt DateTime @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session ProgramSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, sessionId])
+}
+
+model PersonalNote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  sessionId Int
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session ProgramSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sessionId])
 }

@@ -10,15 +10,32 @@ const labels: Record<string, string> = {
   en: "EN",
 };
 
-type StaticPathname = Exclude<
-  AppPathname,
-  `${string}/[slug]` | `${string}/[id]`
->;
+type StaticPathname = Exclude<AppPathname, `${string}[${string}`>;
+
+const STATIC_PATHNAMES = Object.keys(routing.pathnames).filter(
+  (p) => !p.includes("["),
+);
+
+/**
+ * Les adresses traduites diffèrent d'une langue à l'autre : depuis une page de
+ * détail on renvoie vers la page de rubrique la plus proche (comportement voulu
+ * et déjà en place). On remonte les segments jusqu'à tomber sur une adresse
+ * connue — nécessaire depuis que certaines routes ont deux paramètres
+ * (ex. /admin/programs/[id]/sessions/[sessionId]).
+ */
+function toStaticPathname(pathname: string): StaticPathname {
+  let p = pathname.replace(/\/\[.*$/, "");
+  while (p && p !== "/") {
+    if (STATIC_PATHNAMES.includes(p)) return p as StaticPathname;
+    p = p.slice(0, p.lastIndexOf("/"));
+  }
+  return "/";
+}
 
 export default function LanguageSwitcher() {
   const locale = useLocale();
   const pathname = usePathname();
-  const target = pathname.replace(/\/\[[^\]]+\]$/, "") as StaticPathname;
+  const target = toStaticPathname(pathname);
 
   return (
     <div className="flex items-center gap-2.5 text-sm" dir="ltr">
