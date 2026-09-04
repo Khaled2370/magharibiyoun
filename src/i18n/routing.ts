@@ -77,6 +77,11 @@ export const routing = defineRouting({
       fr: "/mediatheque/[slug]",
       en: "/media/[slug]",
     },
+    "/learn/[slug]": {
+      ar: "/تعلم/[slug]",
+      fr: "/apprendre/[slug]",
+      en: "/learn/[slug]",
+    },
     "/admin": {
       ar: "/الإدارة",
       fr: "/admin",

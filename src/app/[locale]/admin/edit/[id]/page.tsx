@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { requireEditor } from "@/lib/authz";
+import { getSourceOptions } from "@/lib/content";
 import ContentForm, {
   adminContentInclude,
   categoryModuleFor,
@@ -13,7 +14,11 @@ export default async function AdminEditPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
-  searchParams: Promise<{ error?: string; coverError?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    coverError?: string;
+    pathStepError?: string;
+  }>;
 }) {
   const { locale, id: rawId } = await params;
   setRequestLocale(locale);
@@ -31,7 +36,7 @@ export default async function AdminEditPage({
   if (!content) notFound();
 
   const catModule = categoryModuleFor(content.type);
-  const [countries, categories] = await Promise.all([
+  const [countries, categories, sourceOptions] = await Promise.all([
     prisma.country.findMany(),
     catModule
       ? prisma.category.findMany({
@@ -39,6 +44,7 @@ export default async function AdminEditPage({
           orderBy: { sortOrder: "asc" },
         })
       : Promise.resolve([]),
+    content.type === "EDUCATIONAL" ? getSourceOptions() : Promise.resolve([]),
   ]);
 
   const typeLabel = [
@@ -48,6 +54,8 @@ export default async function AdminEditPage({
     "PERSONALITY",
     "CULTURAL",
     "MEDIA_ITEM",
+    "EDUCATIONAL",
+    "LEARNING_PATH",
   ].includes(content.type)
     ? t(`type${content.type}`)
     : content.type;
@@ -75,6 +83,11 @@ export default async function AdminEditPage({
           {t("coverUploadError")}
         </p>
       ) : null}
+      {sp.pathStepError ? (
+        <p className="mt-4 rounded-lg bg-terracottal px-4 py-2.5 text-sm text-terracotta">
+          {t("pathStepInvalid", { slug: sp.pathStepError })}
+        </p>
+      ) : null}
       <div className="mt-6">
         <ContentForm
           locale={locale}
@@ -82,6 +95,7 @@ export default async function AdminEditPage({
           content={content}
           countries={countries}
           categories={categories}
+          sourceOptions={sourceOptions}
         />
       </div>
     </div>

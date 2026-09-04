@@ -2,7 +2,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ContentType } from "@prisma/client";
 import {
   BookOpen,
+  GraduationCap,
   Lightbulb,
+  Map,
   Mic,
   Network,
   Palette,
@@ -10,6 +12,7 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireEditor } from "@/lib/authz";
+import { getSourceOptions } from "@/lib/content";
 import { Link } from "@/i18n/navigation";
 import ContentForm, {
   categoryModuleFor,
@@ -22,6 +25,8 @@ const TYPES: { type: ContentType; icon: React.ElementType }[] = [
   { type: "PERSONALITY", icon: Users },
   { type: "CULTURAL", icon: Palette },
   { type: "MEDIA_ITEM", icon: Mic },
+  { type: "EDUCATIONAL", icon: GraduationCap },
+  { type: "LEARNING_PATH", icon: Map },
 ];
 
 export default async function AdminNewPage({
@@ -68,7 +73,7 @@ export default async function AdminNewPage({
   }
 
   const catModule = categoryModuleFor(chosen);
-  const [countries, categories] = await Promise.all([
+  const [countries, categories, sourceOptions] = await Promise.all([
     prisma.country.findMany(),
     catModule
       ? prisma.category.findMany({
@@ -76,6 +81,7 @@ export default async function AdminNewPage({
           orderBy: { sortOrder: "asc" },
         })
       : Promise.resolve([]),
+    chosen === "EDUCATIONAL" ? getSourceOptions() : Promise.resolve([]),
   ]);
 
   return (
@@ -94,6 +100,7 @@ export default async function AdminNewPage({
           type={chosen}
           countries={countries}
           categories={categories}
+          sourceOptions={sourceOptions}
         />
       </div>
     </div>

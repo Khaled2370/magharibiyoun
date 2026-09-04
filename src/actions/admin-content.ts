@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import type {
   ActorType,
+  AgeRange,
   AmazighVariant,
   ContentType,
+  Difficulty,
+  EduFormat,
   InitiativeState,
   MediaKind,
   ScriptType,
@@ -124,6 +127,7 @@ export async function saveContent(formData: FormData) {
 
   const coverFile = formData.get("coverImage");
   let coverError: string | null = null;
+  let pathStepError: string | null = null;
   if (coverFile instanceof File && coverFile.size > 0) {
     try {
       const uploaded = await uploadImage(coverFile);
@@ -236,6 +240,78 @@ export async function saveContent(formData: FormData) {
       create: { contentId, ...data },
       update: data,
     });
+  } else if (type === "EDUCATIONAL") {
+    const sourceContentIdRaw = num("sourceContentId");
+    const data = {
+      ageRange: (str("ageRange") as AgeRange | null) ?? null,
+      format: (str("format") as EduFormat | null) ?? "SHEET",
+      difficulty: (str("difficulty") as Difficulty | null) ?? null,
+      sourceContentId: sourceContentIdRaw,
+      downloadable: on("downloadable"),
+    };
+    await prisma.educationalDetail.upsert({
+      where: { contentId },
+      create: { contentId, ...data },
+      update: data,
+    });
+
+    const quizLines = parseLines(String(formData.get("quizQuestions") ?? ""));
+    if (quizLines.length > 0) {
+      const quiz = await prisma.quiz.upsert({
+        where: { contentId },
+        create: { contentId },
+        update: {},
+      });
+      await prisma.quizQuestion.deleteMany({ where: { quizId: quiz.id } });
+      let qOrder = 0;
+      for (const [prompt, c1, c2, c3, c4, correct, explanation] of quizLines) {
+        if (!prompt || !c1 || !c2) continue;
+        const choices = [c1, c2, c3, c4].filter((c) => c);
+        const correctIndex = Math.min(
+          Math.max((Number(correct) || 1) - 1, 0),
+          choices.length - 1,
+        );
+        await prisma.quizQuestion.create({
+          data: {
+            quizId: quiz.id,
+            sortOrder: qOrder++,
+            prompt: { ar: prompt },
+            choices,
+            correctIndex,
+            explanation: explanation ? { ar: explanation } : undefined,
+          },
+        });
+      }
+    } else {
+      await prisma.quiz.deleteMany({ where: { contentId } });
+    }
+  } else if (type === "LEARNING_PATH") {
+    const stepLines = parseLines(String(formData.get("pathSteps") ?? ""));
+    await prisma.learningPathStep.deleteMany({ where: { pathContentId: contentId } });
+    const invalidSlugs: string[] = [];
+    let sOrder = 0;
+    for (const [slug, titleOverride] of stepLines) {
+      if (!slug) continue;
+      const target = await prisma.contentTranslation.findUnique({
+        where: { locale_slug: { locale: "ar", slug } },
+        select: { contentId: true },
+      });
+      if (!target) {
+        invalidSlugs.push(slug);
+        continue;
+      }
+      await prisma.learningPathStep.create({
+        data: {
+          pathContentId: contentId,
+          targetContentId: target.contentId,
+          sortOrder: sOrder++,
+          titleOverride: titleOverride ? { ar: titleOverride } : undefined,
+        },
+      });
+    }
+    if (invalidSlugs.length > 0) {
+      pathStepError = invalidSlugs.join("، ");
+    }
   }
 
   const existingTranslations = await prisma.contentTranslation.findMany({
@@ -375,12 +451,15 @@ export async function saveContent(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  if (coverError) {
+  if (coverError || pathStepError) {
     redirect({
       href: {
         pathname: "/admin/edit/[id]",
         params: { id: String(contentId) },
-        query: { coverError: "1" },
+        query: {
+          ...(coverError ? { coverError: "1" } : {}),
+          ...(pathStepError ? { pathStepError } : {}),
+        },
       },
       locale,
     });

@@ -9,6 +9,7 @@ import { seedPersonalities2 } from "./demo-personalities2";
 import { seedCulture2 } from "./demo-culture2";
 import { linkBatch2ToExisting } from "./demo-crosslinks2";
 import { seedInitiativeVGM } from "./demo-initiative-vgm";
+import { seedEducation } from "./demo-education";
 
 const prisma = new PrismaClient();
 
@@ -95,6 +96,7 @@ async function main() {
   await seedCulture2(prisma);
   await linkBatch2ToExisting(prisma);
   await seedInitiativeVGM(prisma);
+  await seedEducation(prisma);
 
   console.log("Seed terminé : langues, pays, rôles et compte admin créés.");
 }

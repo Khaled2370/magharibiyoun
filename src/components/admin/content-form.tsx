@@ -18,6 +18,9 @@ export const adminContentInclude = {
   personality: true,
   cultural: true,
   mediaItem: true,
+  educational: { include: { sourceContent: { include: { translations: true } } } },
+  quiz: { include: { questions: { orderBy: { sortOrder: "asc" } } } },
+  pathSteps: { orderBy: { sortOrder: "asc" }, include: { target: { include: { translations: true } } } },
   countries: true,
   categories: true,
   sources: { include: { source: true }, orderBy: { sortOrder: "asc" } },
@@ -40,10 +43,14 @@ export function categoryModuleFor(type: ContentType): CategoryModule | null {
       return "CULTURAL_DOMAIN";
     case "MEDIA_ITEM":
       return "MEDIA_THEME";
+    case "EDUCATIONAL":
+      return "EDUCATION_THEME";
     default:
       return null;
   }
 }
+
+export type SourceOption = { id: number; title: string };
 
 const LOCALES = ["ar", "fr", "en"] as const;
 const LANG_NAMES: Record<string, string> = {
@@ -87,6 +94,17 @@ const VARIANTS = [
   "OTHER",
 ] as const;
 const SCRIPTS = ["LATIN", "TIFINAGH", "ARABIC"] as const;
+const AGE_RANGES = ["KIDS", "TEENS", "ADULTS", "TEACHERS", "FAMILIES"] as const;
+const EDU_FORMATS = [
+  "SHEET",
+  "QUIZ",
+  "DOSSIER",
+  "VIDEO",
+  "TIMELINE",
+  "MAP",
+  "GLOSSARY",
+] as const;
+const DIFFICULTIES = ["INTRO", "EASY", "MEDIUM", "ADVANCED"] as const;
 
 const inputCls =
   "w-full rounded-lg border border-ligne bg-white px-3 py-2 text-sm outline-none focus:border-majorelle";
@@ -99,12 +117,14 @@ export default async function ContentForm({
   content,
   countries,
   categories,
+  sourceOptions = [],
 }: {
   locale: string;
   type: ContentType;
   content?: AdminContent;
   countries: Country[];
   categories: Category[];
+  sourceOptions?: SourceOption[];
 }) {
   const t = await getTranslations("admin");
   const tc = await getTranslations("content");
@@ -149,7 +169,24 @@ export default async function ContentForm({
   )
     .map((q) => `${q.text} | ${q.source ?? ""}`)
     .join("\n");
-
+  const quizQuestionsText = (content?.quiz?.questions ?? [])
+    .map((q) => {
+      const prompt = tLabel(q.prompt, "ar") || tLabel(q.prompt, "fr") || "";
+      const choices = (q.choices as string[] | null) ?? [];
+      const explanation = q.explanation
+        ? tLabel(q.explanation, "ar") || tLabel(q.explanation, "fr") || ""
+        : "";
+      return [prompt, ...choices, String(q.correctIndex + 1), explanation].join(" | ");
+    })
+    .join("\n");
+  const pathStepsText = (content?.pathSteps ?? [])
+    .map((s) => {
+      const slug =
+        s.target?.translations.find((t) => t.locale === "ar")?.slug ?? "";
+      const override = s.titleOverride ? tLabel(s.titleOverride, "ar") : "";
+      return `${slug} | ${override}`;
+    })
+    .join("\n");
   return (
     <form action={saveContent} className="space-y-6">
       <input type="hidden" name="uiLocale" value={locale} />
@@ -738,6 +775,124 @@ export default async function ContentForm({
                 />
               </div>
             </div>
+          </div>
+        ) : null}
+
+        {type === "EDUCATIONAL" ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <label className={labelCls} htmlFor="ageRange">
+                  {t("ageRange")}
+                </label>
+                <select
+                  id="ageRange"
+                  name="ageRange"
+                  defaultValue={content?.educational?.ageRange ?? ""}
+                  className={inputCls}
+                >
+                  <option value="">{t("none")}</option>
+                  {AGE_RANGES.map((a) => (
+                    <option key={a} value={a}>
+                      {tc(`age${a}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls} htmlFor="format">
+                  {t("format")}
+                </label>
+                <select
+                  id="format"
+                  name="format"
+                  defaultValue={content?.educational?.format ?? "SHEET"}
+                  className={inputCls}
+                >
+                  {EDU_FORMATS.map((f) => (
+                    <option key={f} value={f}>
+                      {tc(`format${f}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls} htmlFor="difficulty">
+                  {t("difficulty")}
+                </label>
+                <select
+                  id="difficulty"
+                  name="difficulty"
+                  defaultValue={content?.educational?.difficulty ?? ""}
+                  className={inputCls}
+                >
+                  <option value="">{t("none")}</option>
+                  {DIFFICULTIES.map((d) => (
+                    <option key={d} value={d}>
+                      {tc(`difficulty${d}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="sourceContentId">
+                {t("sourceContent")}
+              </label>
+              <select
+                id="sourceContentId"
+                name="sourceContentId"
+                defaultValue={content?.educational?.sourceContentId ?? ""}
+                className={inputCls}
+              >
+                <option value="">{t("none")}</option>
+                {sourceOptions.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                name="downloadable"
+                defaultChecked={content?.educational?.downloadable ?? false}
+              />
+              {t("downloadable")}
+            </label>
+            <div>
+              <label className={labelCls} htmlFor="quizQuestions">
+                {t("quizQuestions")}
+              </label>
+              <textarea
+                id="quizQuestions"
+                name="quizQuestions"
+                rows={5}
+                defaultValue={quizQuestionsText}
+                className={inputCls}
+              />
+              <p className="mt-1 text-xs text-mutedink">
+                {t("quizQuestionsHint")}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {type === "LEARNING_PATH" ? (
+          <div>
+            <label className={labelCls} htmlFor="pathSteps">
+              {t("pathSteps")}
+            </label>
+            <textarea
+              id="pathSteps"
+              name="pathSteps"
+              rows={6}
+              defaultValue={pathStepsText}
+              dir="ltr"
+              className={inputCls}
+            />
+            <p className="mt-1 text-xs text-mutedink">{t("pathStepsHint")}</p>
           </div>
         ) : null}
       </section>

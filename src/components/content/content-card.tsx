@@ -75,6 +75,29 @@ export default async function ContentCard({
       }
     }
     meta = countries;
+  } else if (c.type === "EDUCATIONAL") {
+    if (c.educational) {
+      chips.push(
+        <Chip key="fm" tone="majorelle">
+          {t(`format${c.educational.format}`)}
+        </Chip>,
+      );
+      if (c.educational.ageRange) {
+        chips.push(
+          <Chip key="ag" tone="neutral">
+            {t(`age${c.educational.ageRange}`)}
+          </Chip>,
+        );
+      }
+    }
+    meta = "";
+  } else if (c.type === "LEARNING_PATH") {
+    chips.push(
+      <Chip key="lp" tone="oasis">
+        {t("learningPathLabel")}
+      </Chip>,
+    );
+    meta = "";
   } else if (c.type === "MEDIA_ITEM") {
     if (c.mediaItem) {
       chips.push(

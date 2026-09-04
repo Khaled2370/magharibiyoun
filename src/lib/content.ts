@@ -10,6 +10,7 @@ export const listInclude = {
       personality: true,
       cultural: true,
       mediaItem: true,
+      educational: true,
       countries: { include: { country: true } },
       categories: { include: { category: true } },
       media: { include: { mediaFile: true }, orderBy: { sortOrder: "asc" } },
@@ -30,6 +31,24 @@ export const detailInclude = {
       personality: true,
       cultural: true,
       mediaItem: true,
+      educational: {
+        include: {
+          sourceContent: {
+            include: { translations: { select: { locale: true, slug: true, title: true, status: true } } },
+          },
+        },
+      },
+      quiz: { include: { questions: { orderBy: { sortOrder: "asc" } } } },
+      pathSteps: {
+        orderBy: { sortOrder: "asc" },
+        include: {
+          target: {
+            include: {
+              translations: { select: { locale: true, slug: true, title: true, status: true } },
+            },
+          },
+        },
+      },
       countries: { include: { country: true } },
       categories: { include: { category: true } },
       media: { include: { mediaFile: true }, orderBy: { sortOrder: "asc" } },
@@ -79,6 +98,22 @@ export async function getLatest(
   take = 2,
 ): Promise<ListItem[]> {
   return getPublishedList(type, locale, take);
+}
+
+export async function getSourceOptions(): Promise<
+  { id: number; title: string }[]
+> {
+  const rows = await prisma.contentTranslation.findMany({
+    where: {
+      locale: "ar",
+      status: "PUBLISHED",
+      content: { type: { notIn: ["EDUCATIONAL", "LEARNING_PATH", "PAGE"] } },
+    },
+    select: { contentId: true, title: true },
+    orderBy: { title: "asc" },
+    take: 500,
+  });
+  return rows.map((r) => ({ id: r.contentId, title: r.title }));
 }
 
 export async function getDetail(
@@ -135,7 +170,8 @@ export type ContentPathname =
   | "/encyclopedia/[slug]"
   | "/opinions/[slug]"
   | "/initiatives/[slug]"
-  | "/media/[slug]";
+  | "/media/[slug]"
+  | "/learn/[slug]";
 
 export function contentHref(type: ContentType): ContentPathname {
   switch (type) {
@@ -145,6 +181,9 @@ export function contentHref(type: ContentType): ContentPathname {
       return "/initiatives/[slug]";
     case "MEDIA_ITEM":
       return "/media/[slug]";
+    case "EDUCATIONAL":
+    case "LEARNING_PATH":
+      return "/learn/[slug]";
     default:
       return "/encyclopedia/[slug]";
   }

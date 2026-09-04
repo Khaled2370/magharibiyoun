@@ -13,6 +13,8 @@ const TYPES: ContentType[] = [
   "PERSONALITY",
   "CULTURAL",
   "MEDIA_ITEM",
+  "EDUCATIONAL",
+  "LEARNING_PATH",
 ];
 const LOCALES = ["ar", "fr", "en"] as const;
 
