@@ -17,7 +17,6 @@ import {
   flattenSessions,
   fmtSessionDate,
   fmtSessionDateTime,
-  isSessionOpen,
   lockReason,
   neighbourSessions,
   programStructureInclude,

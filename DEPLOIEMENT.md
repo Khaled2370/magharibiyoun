@@ -42,8 +42,18 @@ Projet Neon créé, tables créées (`prisma migrate deploy`), contenu injecté
 admin créé. Détails et identifiants transmis à Khaled dans la conversation
 (pas stockés dans ce fichier).
 
-Pour relancer un seed plus tard (nouveau contenu ajouté localement à répercuter
-en production), depuis la machine locale :
+**Les migrations de base sont automatiques depuis le 2026-09-04** : le script de
+build est `prisma migrate deploy && next build`. À chaque déploiement, Vercel
+applique lui-même les migrations en attente sur Neon, avec les identifiants déjà
+enregistrés dans ses variables d'environnement. Plus aucune étape manuelle quand
+le schéma change. Si une migration échoue, le build échoue **avant** la mise en
+ligne : le site en production reste sur l'ancienne version, intact.
+`prisma migrate deploy` n'applique que les migrations non encore appliquées — le
+relancer est sans effet.
+
+Le **contenu** (seed) reste manuel : c'est une opération volontaire, pas une
+conséquence d'un changement de code. Pour relancer un seed plus tard (nouveau
+contenu ajouté localement à répercuter en production), depuis la machine locale :
 
 ```powershell
 $env:DATABASE_URL = "<adresse Pooled Neon>"
