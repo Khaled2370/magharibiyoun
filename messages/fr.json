@@ -152,7 +152,7 @@
     "categories": "Catégories",
     "coverSection": "Image de couverture",
     "currentCover": "Image actuelle",
-    "coverHint": "JPEG, PNG, WebP ou GIF, 8 Mo maximum. Envoyer une nouvelle image remplace l'actuelle.",
+    "coverHint": "JPEG, PNG, WebP ou GIF, 4 Mo maximum. Envoyer une nouvelle image remplace l'actuelle.",
     "coverUploadError": "Le contenu a été enregistré, mais l'envoi de l'image a échoué. Réessayez.",
     "translationsSection": "Versions linguistiques",
     "fieldTitle": "Titre",
@@ -219,7 +219,9 @@
     "quizQuestionsHint": "Une ligne par question : question | choix 1 | choix 2 | choix 3 | choix 4 | numéro de la bonne réponse (1 à 4) | explication courte (facultatif)",
     "pathSteps": "Étapes du parcours",
     "pathStepsHint": "Une ligne par étape, dans l'ordre d'affichage : identifiant arabe (slug) | titre personnalisé (facultatif)",
-    "pathStepInvalid": "Contenu introuvable pour cet identifiant : {slug}"
+    "pathStepInvalid": "Contenu introuvable pour cet identifiant : {slug}",
+    "fileTooBig": "Fichier trop lourd — 4 Mo maximum. Compressez l'image ou choisissez un fichier plus léger.",
+    "uploadNotConfigured": "Le service d'hébergement des images n'est pas configuré sur le serveur — le reste a été enregistré."
   },
   "contribute": {
     "pageTitle": "Contribuer à Magharibiyoun",
@@ -394,8 +396,8 @@
     "adminVideoDuration": "Durée (minutes)",
     "adminTextBody": "Texte",
     "adminTextHint": "Accepte : ## titre · - liste · > citation · **gras** · [texte](lien)",
-    "adminPdfFile": "Fichier PDF (20 Mo maximum)",
-    "adminImageFile": "Image (8 Mo maximum)",
+    "adminPdfFile": "Fichier PDF (4 Mo maximum)",
+    "adminImageFile": "Image (4 Mo maximum)",
     "adminCurrentFile": "Fichier actuel",
     "adminLinkUrl": "Adresse du lien",
     "adminLinkLabel": "Texte du lien",

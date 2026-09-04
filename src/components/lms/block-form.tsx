@@ -2,14 +2,14 @@ import { getTranslations } from "next-intl/server";
 import type { ContentBlockType } from "@prisma/client";
 import type { BlockWithMedia } from "@/lib/lms";
 import { saveBlock } from "@/actions/lms-admin";
+import { MAX_UPLOAD_BYTES } from "@/lib/cloudinary";
+import FileField from "@/components/admin/file-field";
 
 const LINK_KINDS = ["ARTICLE", "SITE", "PODCAST", "VIDEO", "DOCUMENT", "OTHER"] as const;
 
 const inputCls =
   "w-full rounded-lg border border-ligne bg-white px-3 py-2 text-sm outline-none focus:border-majorelle";
 const labelCls = "mb-1 block text-sm font-medium";
-const fileCls =
-  "block w-full text-sm text-mutedink file:me-3 file:rounded-lg file:border-0 file:bg-sable2 file:px-3 file:py-2 file:text-sm file:font-medium file:text-encre";
 
 /** Formulaire d'un bloc de contenu — champs affichés selon le type choisi. */
 export default async function BlockForm({
@@ -24,6 +24,7 @@ export default async function BlockForm({
   uiLocale: string;
 }) {
   const t = await getTranslations("lms");
+  const ta = await getTranslations("admin");
 
   return (
     <form action={saveBlock} className="space-y-3">
@@ -120,11 +121,15 @@ export default async function BlockForm({
               </a>
             </p>
           ) : null}
-          <input
+          <FileField
             name="file"
-            type="file"
-            accept={type === "PDF" ? "application/pdf" : "image/jpeg,image/png,image/webp,image/gif"}
-            className={fileCls}
+            accept={
+              type === "PDF"
+                ? "application/pdf"
+                : "image/jpeg,image/png,image/webp,image/gif"
+            }
+            maxBytes={MAX_UPLOAD_BYTES}
+            tooBigLabel={ta("fileTooBig")}
           />
         </div>
       ) : null}

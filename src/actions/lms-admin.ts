@@ -11,7 +11,11 @@ import type {
 import { prisma } from "@/lib/prisma";
 import { requireEditor } from "@/lib/authz";
 import { slugify } from "@/lib/slug";
-import { uploadDocument, uploadImage } from "@/lib/cloudinary";
+import {
+  CloudinaryNotConfiguredError,
+  uploadDocument,
+  uploadImage,
+} from "@/lib/cloudinary";
 import { fromDateTimeInputs } from "@/lib/lms";
 import { redirect } from "@/i18n/navigation";
 
@@ -136,7 +140,9 @@ export async function saveProgram(formData: FormData) {
     : await prisma.program.create({ data });
 
   // Couverture : si l'envoi échoue, le reste est déjà enregistré.
-  let uploadError = false;
+  // On distingue « service non configuré » d'un échec ponctuel : le premier
+  // appelle une action de Khaled (variables Vercel), le second non.
+  let uploadError: string | null = null;
   const cover = file("cover");
   if (cover) {
     try {
@@ -153,13 +159,17 @@ export async function saveProgram(formData: FormData) {
         where: { id: program.id },
         data: { coverMediaId: media.id },
       });
-    } catch {
-      uploadError = true;
+    } catch (e) {
+      uploadError = e instanceof CloudinaryNotConfiguredError ? "config" : "1";
     }
   }
 
   refresh();
-  return backToProgram(locale, program.id, uploadError ? { uploadError: "1" } : { saved: "1" });
+  return backToProgram(
+    locale,
+    program.id,
+    uploadError ? { uploadError } : { saved: "1" },
+  );
 }
 
 export async function deleteProgram(formData: FormData) {
@@ -519,7 +529,7 @@ export async function saveBlock(formData: FormData) {
 
   // Fichier éventuel (PDF ou image) — l'échec n'annule pas l'enregistrement.
   let mediaFileId: number | null = null;
-  let uploadError = false;
+  let uploadError: string | null = null;
   const upload = file("file");
   if (upload) {
     try {
@@ -541,8 +551,8 @@ export async function saveBlock(formData: FormData) {
         });
         mediaFileId = media.id;
       }
-    } catch {
-      uploadError = true;
+    } catch (e) {
+      uploadError = e instanceof CloudinaryNotConfiguredError ? "config" : "1";
     }
   }
 
@@ -586,7 +596,7 @@ export async function saveBlock(formData: FormData) {
     locale,
     programId,
     sessionId,
-    uploadError ? { uploadError: "1" } : { saved: "1" },
+    uploadError ? { uploadError } : { saved: "1" },
   );
 }
 

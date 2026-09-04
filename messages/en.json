@@ -152,7 +152,7 @@
     "categories": "Categories",
     "coverSection": "Cover image",
     "currentCover": "Current image",
-    "coverHint": "JPEG, PNG, WebP or GIF, 8 MB max. Uploading a new image replaces the current one.",
+    "coverHint": "JPEG, PNG, WebP or GIF, 4 MB maximum. Uploading a new image replaces the current one.",
     "coverUploadError": "The content was saved, but the image upload failed. Please try again.",
     "translationsSection": "Language versions",
     "fieldTitle": "Title",
@@ -219,7 +219,9 @@
     "quizQuestionsHint": "One line per question: question | choice 1 | choice 2 | choice 3 | choice 4 | correct answer number (1 to 4) | short explanation (optional)",
     "pathSteps": "Path steps",
     "pathStepsHint": "One line per step, in display order: Arabic slug | custom title (optional)",
-    "pathStepInvalid": "No content found for this slug: {slug}"
+    "pathStepInvalid": "No content found for this slug: {slug}",
+    "fileTooBig": "File too large — 4 MB maximum. Compress the image or pick a lighter file.",
+    "uploadNotConfigured": "The image hosting service is not configured on the server — everything else was saved."
   },
   "contribute": {
     "pageTitle": "Contribute to Magharibiyoun",
@@ -394,8 +396,8 @@
     "adminVideoDuration": "Duration (minutes)",
     "adminTextBody": "Text",
     "adminTextHint": "Supports: ## heading · - list · > quote · **bold** · [text](link)",
-    "adminPdfFile": "PDF file (20 MB max)",
-    "adminImageFile": "Image (8 MB max)",
+    "adminPdfFile": "PDF file (4 MB max)",
+    "adminImageFile": "Image (4 MB max)",
     "adminCurrentFile": "Current file",
     "adminLinkUrl": "Link address",
     "adminLinkLabel": "Link text",

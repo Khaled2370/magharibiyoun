@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import type { MediaFile, Program } from "@prisma/client";
 import { saveProgram } from "@/actions/lms-admin";
+import { MAX_UPLOAD_BYTES } from "@/lib/cloudinary";
+import FileField from "@/components/admin/file-field";
 
 const STATUSES = ["DRAFT", "ACTIVE", "ARCHIVED"] as const;
 
@@ -97,12 +99,11 @@ export default async function ProgramForm({
             className="mb-2 h-24 rounded-lg border border-ligne object-cover"
           />
         ) : null}
-        <input
-          id="cover"
+        <FileField
           name="cover"
-          type="file"
           accept="image/jpeg,image/png,image/webp,image/gif"
-          className="block w-full text-sm text-mutedink file:me-3 file:rounded-lg file:border-0 file:bg-sable2 file:px-3 file:py-2 file:text-sm file:font-medium file:text-encre"
+          maxBytes={MAX_UPLOAD_BYTES}
+          tooBigLabel={ta("fileTooBig")}
         />
       </div>
 

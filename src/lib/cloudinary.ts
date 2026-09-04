@@ -7,19 +7,41 @@ cloudinary.config({
   secure: true,
 });
 
-const MAX_BYTES = 8 * 1024 * 1024;
-const MAX_PDF_BYTES = 20 * 1024 * 1024;
+// 4 Mo : limite imposée par la chaîne d'envoi, pas par Cloudinary.
+// Un formulaire transite par une Server Action, dont le corps est plafonné
+// (4 Mo côté Next, 4,5 Mo côté Vercel). Au-delà, la requête entière échoue.
+// Voir next.config.ts et le composant FileField qui contrôle avant l'envoi.
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+/** Erreur distincte : rien n'a été tenté car le service n'est pas configuré. */
+export class CloudinaryNotConfiguredError extends Error {
+  constructor() {
+    super("Cloudinary n'est pas configuré (variables d'environnement absentes).");
+    this.name = "CloudinaryNotConfiguredError";
+  }
+}
+
+function ensureConfigured() {
+  if (
+    !process.env.CLOUDINARY_CLOUD_NAME ||
+    !process.env.CLOUDINARY_API_KEY ||
+    !process.env.CLOUDINARY_API_SECRET
+  ) {
+    throw new CloudinaryNotConfiguredError();
+  }
+}
 
 export type UploadedImage = { url: string; width: number; height: number };
 export type UploadedDocument = { url: string; bytes: number };
 
 export async function uploadImage(file: File): Promise<UploadedImage> {
+  ensureConfigured();
   if (!ALLOWED_TYPES.has(file.type)) {
     throw new Error("نوع الملف غير مدعوم — يُقبل JPEG وPNG وWebP وGIF فقط.");
   }
-  if (file.size > MAX_BYTES) {
-    throw new Error("حجم الصورة يتجاوز 8 ميغابايت.");
+  if (file.size > MAX_UPLOAD_BYTES) {
+    throw new Error("حجم الصورة يتجاوز 4 ميغابايت.");
   }
   const buffer = Buffer.from(await file.arrayBuffer());
   const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
@@ -39,11 +61,12 @@ export async function uploadImage(file: File): Promise<UploadedImage> {
 // Accept-Ranges), ce qui est exactement ce dont pdf.js a besoin pour l'afficher
 // dans le lecteur intégré. D'où le public_id délibérément sans ".pdf".
 export async function uploadDocument(file: File): Promise<UploadedDocument> {
+  ensureConfigured();
   if (file.type !== "application/pdf") {
     throw new Error("نوع الملف غير مدعوم — يُقبل PDF فقط.");
   }
-  if (file.size > MAX_PDF_BYTES) {
-    throw new Error("حجم الملف يتجاوز 20 ميغابايت.");
+  if (file.size > MAX_UPLOAD_BYTES) {
+    throw new Error("حجم الملف يتجاوز 4 ميغابايت.");
   }
   const buffer = Buffer.from(await file.arrayBuffer());
   const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;

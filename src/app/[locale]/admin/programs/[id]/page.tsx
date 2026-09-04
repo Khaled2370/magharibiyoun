@@ -74,7 +74,9 @@ export default async function AdminProgramPage({
       ) : null}
       {sp.uploadError ? (
         <p className="mb-4 rounded-lg bg-terracottal px-4 py-2.5 text-sm text-terracotta">
-          {t("adminUploadError")}
+          {sp.uploadError === "config"
+            ? ta("uploadNotConfigured")
+            : t("adminUploadError")}
         </p>
       ) : null}
       {sp.error === "enrolled" ? (

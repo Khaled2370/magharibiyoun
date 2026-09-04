@@ -8,6 +8,8 @@ import type {
 } from "@prisma/client";
 import { saveContent } from "@/actions/admin-content";
 import { tLabel } from "@/lib/content";
+import { MAX_UPLOAD_BYTES } from "@/lib/cloudinary";
+import FileField from "@/components/admin/file-field";
 import { Link } from "@/i18n/navigation";
 
 export const adminContentInclude = {
@@ -271,11 +273,11 @@ export default async function ContentForm({
             <span className="text-xs text-mutedink">{t("currentCover")}</span>
           </div>
         ) : null}
-        <input
-          type="file"
+        <FileField
           name="coverImage"
           accept="image/jpeg,image/png,image/webp,image/gif"
-          className="block w-full text-sm text-mutedink file:mr-3 file:rounded-lg file:border file:border-ligne file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-majorelle hover:file:border-majorelle"
+          maxBytes={MAX_UPLOAD_BYTES}
+          tooBigLabel={t("fileTooBig")}
         />
         <p className="mt-1 text-xs text-mutedink">{t("coverHint")}</p>
       </section>
