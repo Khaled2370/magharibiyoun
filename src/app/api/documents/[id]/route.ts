@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { canEdit } from "@/lib/authz";
+import { canEdit, isAuthenticated } from "@/lib/authz";
 import { isSessionOpen } from "@/lib/lms";
 
 /**
@@ -25,8 +25,12 @@ export async function GET(
   }
 
   const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return new NextResponse("Non autorisé", { status: 401 });
+  // Même contrôle strict que les pages (voir isAuthenticated) : on n'accepte
+  // pas une session dégradée, on exige un identifiant d'utilisateur réel.
+  if (!isAuthenticated(session)) {
+    return new NextResponse("Non autorisé", { status: 401 });
+  }
+  const userId = session.user.id;
 
   const block = await prisma.contentBlock.findUnique({
     where: { id: blockId },

@@ -26,7 +26,7 @@ export default async function LearnCalendarPage({
   const t = await getTranslations("lms");
   const sp = await searchParams;
 
-  const userId = auth.user.id!;
+  const userId = auth.user.id;
   const [enrolled, completed] = await Promise.all([
     getEnrolledPrograms(userId),
     completedSessionIds(userId),

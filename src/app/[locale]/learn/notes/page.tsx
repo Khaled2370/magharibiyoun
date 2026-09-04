@@ -18,7 +18,7 @@ export default async function LearnNotesPage({
   const t = await getTranslations("lms");
 
   const notes = await prisma.personalNote.findMany({
-    where: { userId: auth.user.id! },
+    where: { userId: auth.user.id },
     include: {
       session: {
         select: {

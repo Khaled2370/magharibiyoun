@@ -16,7 +16,7 @@ export default async function MyProgramsPage({
   const auth = await requireUser(locale);
   const t = await getTranslations("lms");
 
-  const enrolled = await getEnrolledPrograms(auth.user.id!);
+  const enrolled = await getEnrolledPrograms(auth.user.id);
   const covers = await prisma.mediaFile.findMany({
     where: {
       id: {

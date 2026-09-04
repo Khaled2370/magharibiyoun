@@ -51,7 +51,7 @@ export default async function SessionPlayerPage({
   setRequestLocale(locale);
   const auth = await requireUser(locale);
   const t = await getTranslations("lms");
-  const userId = auth.user.id!;
+  const userId = auth.user.id;
 
   const session = await prisma.programSession.findUnique({
     where: { slug: decodeURIComponent(slug) },
