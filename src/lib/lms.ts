@@ -1,5 +1,6 @@
 import type {
   ContentBlock,
+  Exam,
   MediaFile,
   ProgramSession,
   ProgramWeek,
@@ -106,7 +107,12 @@ export function fmtSessionDateTime(
 export const programStructureInclude = {
   weeks: {
     orderBy: { weekNumber: "asc" },
-    include: { sessions: { orderBy: { orderInWeek: "asc" } } },
+    include: {
+      sessions: { orderBy: { orderInWeek: "asc" } },
+      // Juste de quoi savoir s'il y a un examen et s'il est visible : le
+      // détail des questions ne se charge que sur la page de l'examen.
+      exam: { select: { id: true, status: true } },
+    },
   },
 } satisfies Prisma.ProgramInclude;
 
@@ -182,6 +188,54 @@ export function isSessionOpen(
   if (session.status === "PUBLISHED") return true;
   const unlock = effectiveUnlockAt(session, week);
   return !unlock || unlock.getTime() <= now.getTime();
+}
+
+/**
+ * Un examen est-il ouvert au passage ?
+ *
+ * Mêmes quatre statuts qu'une séance, même signification — on ne crée pas un
+ * second vocabulaire. S'y ajoutent deux bornes propres à l'examen : une date
+ * d'ouverture et une date de fermeture, toutes deux facultatives. La semaine
+ * doit elle aussi être ouverte, comme pour une séance.
+ */
+export function isExamOpen(
+  exam: Pick<Exam, "status" | "opensAt" | "closesAt">,
+  week: Pick<ProgramWeek, "opensAt">,
+  now: Date = new Date(),
+): boolean {
+  if (exam.status === "DRAFT" || exam.status === "LOCKED") return false;
+  if (exam.closesAt && exam.closesAt.getTime() <= now.getTime()) return false;
+  if (exam.status === "PUBLISHED") return true;
+  const dates = [week.opensAt, exam.opensAt].filter(Boolean) as Date[];
+  if (dates.length === 0) return true;
+  return Math.max(...dates.map((d) => d.getTime())) <= now.getTime();
+}
+
+/** Pourquoi l'examen n'est pas passable, pour l'expliquer à l'élève. */
+export type ExamState = "open" | "notYet" | "closed" | "hidden" | "noAttemptsLeft";
+
+export function examState(
+  exam: Pick<Exam, "status" | "opensAt" | "closesAt" | "maxAttempts">,
+  week: Pick<ProgramWeek, "opensAt">,
+  attemptsUsed: number,
+  now: Date = new Date(),
+): ExamState {
+  if (exam.status === "DRAFT") return "hidden";
+  if (exam.status === "LOCKED") return "closed";
+  if (exam.closesAt && exam.closesAt.getTime() <= now.getTime()) return "closed";
+  if (!isExamOpen(exam, week, now)) return "notYet";
+  if (exam.maxAttempts > 0 && attemptsUsed >= exam.maxAttempts) return "noAttemptsLeft";
+  return "open";
+}
+
+/** Date d'ouverture effective d'un examen (semaine et examen confondus). */
+export function examOpensAt(
+  exam: Pick<Exam, "opensAt">,
+  week: Pick<ProgramWeek, "opensAt">,
+): Date | null {
+  const dates = [week.opensAt, exam.opensAt].filter(Boolean) as Date[];
+  if (dates.length === 0) return null;
+  return new Date(Math.max(...dates.map((d) => d.getTime())));
 }
 
 export type LockReason = "open" | "scheduled" | "locked" | "draft";

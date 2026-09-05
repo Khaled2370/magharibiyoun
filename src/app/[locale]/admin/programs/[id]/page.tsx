@@ -17,7 +17,7 @@ import ConfirmSubmit from "@/components/lms/confirm-submit";
 import FileField from "@/components/admin/file-field";
 import UnsavedGuard from "@/components/admin/unsaved-guard";
 import { FormPending } from "@/components/admin/form-feedback";
-import BackLink from "@/components/admin/back-link";
+import BackLink, { ProgramTab } from "@/components/admin/safe-link";
 import { getPathname, Link } from "@/i18n/navigation";
 
 const WEEK_KINDS = ["LEARNING", "REVIEW", "EXAM"] as const;
@@ -145,6 +145,33 @@ export default async function AdminProgramPage({
           confirmText={t("adminConfirmDeleteProgram")}
         />
       </div>
+
+      {/* Les autres pages de ce programme. `ProgramTab` demande confirmation
+          si une saisie du planning est encore en attente. */}
+      <nav className="mb-6 flex flex-wrap gap-2">
+        <ProgramTab
+          href={getPathname({
+            locale,
+            href: {
+              pathname: "/admin/programs/[id]/announcements",
+              params: { id: String(program.id) },
+            },
+          })}
+          label={t("adminOpenAnnouncements")}
+          confirmText={t("unsavedLeaveConfirm")}
+        />
+        <ProgramTab
+          href={getPathname({
+            locale,
+            href: {
+              pathname: "/admin/programs/[id]/students",
+              params: { id: String(program.id) },
+            },
+          })}
+          label={t("adminOpenStudents")}
+          confirmText={t("unsavedLeaveConfirm")}
+        />
+      </nav>
 
       <UnsavedGuard formId={FORM_ID} label={t("unsavedWarning")} />
 
@@ -349,6 +376,22 @@ export default async function AdminProgramPage({
                         >
                           {t("adminActivateDrafts")}
                         </button>
+                      ) : null}
+                      {/* L'examen se gère sur sa propre page : seules les
+                          semaines de type « اختبار » y donnent accès. */}
+                      {week.kind === "EXAM" ? (
+                        <ProgramTab
+                          href={getPathname({
+                            locale,
+                            href: {
+                              pathname: "/admin/programs/[id]/exam/[weekId]",
+                              params: { id: String(program.id), weekId: String(week.id) },
+                            },
+                          })}
+                          label={t("adminOpenExam")}
+                          confirmText={t("unsavedLeaveConfirm")}
+                          small
+                        />
                       ) : null}
                       <button
                         type="submit"

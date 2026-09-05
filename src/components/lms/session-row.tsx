@@ -21,6 +21,9 @@ export default async function SessionRow({
   const t = await getTranslations("lms");
   const reason = lockReason(session, week);
   if (reason === "draft") return null;
+  // Une séance déjà terminée reste ouverte quoi qu'il arrive à sa date : on ne
+  // reprend pas à l'élève un contenu qu'il a déjà travaillé.
+  const open = reason === "open" || completed;
 
   const meta = (
     <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-mutedink">
@@ -35,7 +38,7 @@ export default async function SessionRow({
     </span>
   );
 
-  if (reason !== "open") {
+  if (!open) {
     const unlockAt = effectiveUnlockAt(session, week);
     return (
       <div className="flex items-start gap-3 rounded-xl border border-ligne bg-sable2 p-4">

@@ -117,6 +117,21 @@ export const routing = defineRouting({
       fr: "/apprendre/seance/[slug]",
       en: "/learn/session/[slug]",
     },
+    "/learn/exam/[weekId]": {
+      ar: "/تعلم/اختبار/[weekId]",
+      fr: "/apprendre/examen/[weekId]",
+      en: "/learn/exam/[weekId]",
+    },
+    "/learn/review/[weekId]": {
+      ar: "/تعلم/مراجعة/[weekId]",
+      fr: "/apprendre/revision/[weekId]",
+      en: "/learn/review/[weekId]",
+    },
+    "/learn/certificate/[code]": {
+      ar: "/تعلم/شهادة/[code]",
+      fr: "/apprendre/certificat/[code]",
+      en: "/learn/certificate/[code]",
+    },
     "/admin": {
       ar: "/الإدارة",
       fr: "/admin",
@@ -156,6 +171,21 @@ export const routing = defineRouting({
       ar: "/الإدارة/برامج/[id]/حصص/[sessionId]",
       fr: "/admin/programmes/[id]/seances/[sessionId]",
       en: "/admin/programs/[id]/sessions/[sessionId]",
+    },
+    "/admin/programs/[id]/announcements": {
+      ar: "/الإدارة/برامج/[id]/إعلانات",
+      fr: "/admin/programmes/[id]/annonces",
+      en: "/admin/programs/[id]/announcements",
+    },
+    "/admin/programs/[id]/exam/[weekId]": {
+      ar: "/الإدارة/برامج/[id]/اختبار/[weekId]",
+      fr: "/admin/programmes/[id]/examen/[weekId]",
+      en: "/admin/programs/[id]/exam/[weekId]",
+    },
+    "/admin/programs/[id]/students": {
+      ar: "/الإدارة/برامج/[id]/الطلبة",
+      fr: "/admin/programmes/[id]/eleves",
+      en: "/admin/programs/[id]/students",
     },
     "/admin/calendar": {
       ar: "/الإدارة/التقويم",

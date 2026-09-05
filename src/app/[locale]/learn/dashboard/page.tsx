@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { CalendarDays, PlayCircle } from "lucide-react";
+import { CalendarDays, Megaphone, PlayCircle } from "lucide-react";
 import { requireUser } from "@/lib/authz";
+import { prisma } from "@/lib/prisma";
 import {
   buildCalendar,
   completedSessionIds,
@@ -16,6 +17,7 @@ import StudentNav from "@/components/lms/student-nav";
 import ProgressBar from "@/components/lms/progress-bar";
 import SessionRow from "@/components/lms/session-row";
 import CalendarGrid from "@/components/lms/calendar-grid";
+import AnnouncementList from "@/components/lms/announcement-list";
 import { Link } from "@/i18n/navigation";
 
 export default async function LearnDashboardPage({
@@ -81,6 +83,14 @@ export default async function LearnDashboardPage({
   const month = Number(sp.month) || Number(today.slice(5, 7));
   const cells = buildCalendar(active.program, year, month, completed, now);
 
+  // Annonces déjà publiées seulement : une annonce datée du futur reste
+  // invisible, exactement comme une séance programmée.
+  const announcements = await prisma.announcement.findMany({
+    where: { programId: active.program.id, publishAt: { lte: now } },
+    orderBy: [{ isPinned: "desc" }, { publishAt: "desc" }],
+    take: 5,
+  });
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <h1 className="text-3xl font-medium">{t("dashboardTitle")}</h1>
@@ -133,6 +143,17 @@ export default async function LearnDashboardPage({
           </Link>
         ) : null}
       </section>
+
+      {/* الإعلانات — juste sous l'en-tête : c'est ce qui doit être lu en premier */}
+      {announcements.length > 0 ? (
+        <section className="mt-6">
+          <h2 className="mb-3 flex items-center gap-2 font-medium">
+            <Megaphone className="h-4 w-4 text-majorelle" aria-hidden />
+            {t("announcementsTitle")}
+          </h2>
+          <AnnouncementList announcements={announcements} locale={locale} />
+        </section>
+      ) : null}
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* جدول اليوم */}

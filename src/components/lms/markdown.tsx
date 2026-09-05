@@ -46,6 +46,18 @@ function Inline({ tokens }: { tokens?: Token[] }) {
             );
           case "br":
             return <br key={i} />;
+          // Dans un élément de liste (ou une cellule), `marked` enveloppe le
+          // contenu dans un jeton « text » qui porte lui-même les jetons de
+          // mise en forme. Sans cette récursion, un `**gras**` d'une puce
+          // ressortait avec ses astérisques — vu en test le 2026-09-05.
+          case "text": {
+            const inner = (tk as Tokens.Text).tokens;
+            return inner && inner.length > 0 ? (
+              <Inline key={i} tokens={inner} />
+            ) : (
+              <span key={i}>{(tk as Tokens.Text).text}</span>
+            );
+          }
           case "link": {
             const l = tk as Tokens.Link;
             // Seuls les liens http(s) et internes sont cliquables : on écarte

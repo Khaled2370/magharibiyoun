@@ -1,6 +1,12 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { CalendarDays, CheckCircle2, GraduationCap } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  ClipboardCheck,
+  GraduationCap,
+  RotateCcw,
+} from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -161,7 +167,7 @@ export default async function ProgramDetailPage({
                     </span>
                   ) : null}
                 </div>
-                {sessions.length === 0 ? (
+                {sessions.length === 0 && week.kind === "LEARNING" ? (
                   <p className="text-sm text-mutedink">{t("weekEmpty")}</p>
                 ) : (
                   <div className="space-y-2">
@@ -176,6 +182,34 @@ export default async function ProgramDetailPage({
                     ))}
                   </div>
                 )}
+
+                {/* Les semaines de révision et d'examen ont leur propre page :
+                    elles ne se résument pas à une liste de séances. Réservées
+                    aux inscrits, comme le reste du parcours. */}
+                {isEnrolled && week.kind === "REVIEW" ? (
+                  <Link
+                    href={{
+                      pathname: "/learn/review/[weekId]",
+                      params: { weekId: String(week.id) },
+                    }}
+                    className="mt-2 inline-flex items-center gap-2 rounded-lg border border-majorelle px-4 py-2 text-sm font-medium text-majorelle transition-colors hover:bg-majorellel"
+                  >
+                    <RotateCcw className="h-4 w-4" aria-hidden />
+                    {t("openReviewWeek")}
+                  </Link>
+                ) : null}
+                {isEnrolled && week.kind === "EXAM" && week.exam && week.exam.status !== "DRAFT" ? (
+                  <Link
+                    href={{
+                      pathname: "/learn/exam/[weekId]",
+                      params: { weekId: String(week.id) },
+                    }}
+                    className="mt-2 inline-flex items-center gap-2 rounded-lg border border-majorelle px-4 py-2 text-sm font-medium text-majorelle transition-colors hover:bg-majorellel"
+                  >
+                    <ClipboardCheck className="h-4 w-4" aria-hidden />
+                    {t("startExam")}
+                  </Link>
+                ) : null}
               </section>
             );
           })}

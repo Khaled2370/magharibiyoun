@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { auth } from "@/auth";
+import { isAuthenticated } from "@/lib/authz";
 import { Link, redirect } from "@/i18n/navigation";
 import RegisterForm from "@/components/register-form";
 
@@ -11,7 +12,9 @@ export default async function RegisterPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const session = await auth();
-  if (session?.user) {
+  // Contrôle strict, jamais « l'objet existe » : une session dégradée doit
+  // laisser voir le formulaire, sinon on renvoie vers une page qui renverra ici.
+  if (isAuthenticated(session)) {
     redirect({ href: "/account", locale });
   }
   const t = await getTranslations("auth");

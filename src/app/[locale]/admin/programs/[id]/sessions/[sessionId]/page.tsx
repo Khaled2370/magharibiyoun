@@ -18,7 +18,7 @@ import { saveSessionPage } from "@/actions/lms-planning";
 import FileField from "@/components/admin/file-field";
 import UnsavedGuard from "@/components/admin/unsaved-guard";
 import { FormPending, ScrollToNew } from "@/components/admin/form-feedback";
-import BackLink from "@/components/admin/back-link";
+import BackLink from "@/components/admin/safe-link";
 import { getPathname, Link } from "@/i18n/navigation";
 
 const SESSION_STATUSES = ["DRAFT", "SCHEDULED", "PUBLISHED", "LOCKED"] as const;

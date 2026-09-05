@@ -127,8 +127,14 @@ export default async function SessionPlayerPage({
   }
 
   // Verrou serveur : indispensable, l'adresse peut être tapée ou partagée.
+  //
+  // Exception : une séance déjà terminée reste toujours consultable. Sans
+  // cela, décaler la date d'une séance ou la verrouiller reprendrait à l'élève
+  // un contenu qu'il a déjà travaillé — et rendrait la semaine de révision
+  // inutilisable justement pour les séances qu'il a finies.
   const reason = lockReason(session, session.week);
-  if (reason !== "open" && !isAdmin) {
+  const alreadyDone = completed.has(session.id);
+  if (reason !== "open" && !isAdmin && !alreadyDone) {
     const unlockAt = effectiveUnlockAt(session, session.week);
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
@@ -151,7 +157,7 @@ export default async function SessionPlayerPage({
     );
   }
 
-  const isDone = completed.has(session.id);
+  const isDone = alreadyDone;
   const progress = computeProgress(
     flattenSessions(program).map(({ session: s }) => s),
     completed,
