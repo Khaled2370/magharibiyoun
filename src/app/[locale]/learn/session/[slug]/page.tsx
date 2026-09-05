@@ -5,10 +5,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Eye,
   Lock,
   User,
 } from "lucide-react";
-import { requireUser } from "@/lib/authz";
+import { canEdit, requireUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import {
   completedSessionIds,
@@ -73,6 +74,21 @@ export default async function SessionPlayerPage({
     completedSessionIds(userId),
   ]);
   const isEnrolled = Boolean(enrollment && enrollment.status !== "DROPPED");
+  // Un administrateur doit pouvoir relire ce qu'il prepare : sans ca, il ne
+  // peut pas verifier une seance avant sa date d'ouverture.
+  const isAdmin = canEdit(auth);
+  const isPreview = isAdmin && (!isEnrolled || lockReason(session, session.week) !== "open");
+
+  // Aperçu : l'administrateur regarde une séance qu'il ne pourrait pas suivre
+  // en tant qu'élève. Valider la séance ou prendre des notes y serait refusé
+  // côté serveur — on masque donc ces zones au lieu d'afficher des boutons
+  // sans effet.
+  const adminBanner = (text: string) => (
+    <p className="mb-6 flex items-center gap-2 rounded-lg bg-majorellel px-4 py-2.5 text-sm font-medium text-majorelle">
+      <Eye className="h-4 w-4 shrink-0" aria-hidden />
+      {text}
+    </p>
+  );
 
   const header = (
     <div className="mb-6">
@@ -93,7 +109,7 @@ export default async function SessionPlayerPage({
   );
 
   // Non inscrit : on ne montre jamais le contenu, juste le chemin pour s'inscrire.
-  if (!isEnrolled) {
+  if (!isEnrolled && !isAdmin) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
         {header}
@@ -112,7 +128,7 @@ export default async function SessionPlayerPage({
 
   // Verrou serveur : indispensable, l'adresse peut être tapée ou partagée.
   const reason = lockReason(session, session.week);
-  if (reason !== "open") {
+  if (reason !== "open" && !isAdmin) {
     const unlockAt = effectiveUnlockAt(session, session.week);
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
@@ -155,6 +171,9 @@ export default async function SessionPlayerPage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       {header}
+
+      {isAdmin && reason !== "open" ? adminBanner(t("adminPreview")) : null}
+      {isAdmin && !isEnrolled ? adminBanner(t("adminPreviewNotEnrolled")) : null}
 
       <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-mutedink">
         {session.instructor ? (
@@ -208,7 +227,8 @@ export default async function SessionPlayerPage({
         </section>
       ) : null}
 
-      {/* Validation de la séance */}
+      {/* Validation de la séance — masquée en simple aperçu administrateur */}
+      {isPreview ? null : (
       <div className="mt-10 rounded-xl border border-ligne bg-white p-5 text-center">
         {isDone ? (
           <>
@@ -240,8 +260,10 @@ export default async function SessionPlayerPage({
           </form>
         )}
       </div>
+      )}
 
       {/* Notes personnelles */}
+      {isPreview ? null : (
       <div className="mt-6">
         <NotePanel
           sessionId={session.id}
@@ -257,6 +279,7 @@ export default async function SessionPlayerPage({
           }}
         />
       </div>
+      )}
 
       {/* Navigation entre séances */}
       <nav className="mt-8 flex items-center justify-between gap-3 border-t border-ligne pt-5">

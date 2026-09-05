@@ -116,6 +116,14 @@ La faille qui concernait réellement ce projet : **GHSA-8fpg-xm3f-6cx3** — une
 
 **Parcours re-testé intégralement après la mise à jour** (build de production local, `npx next start -p 3010`) : anonyme refusé sur `/الإدارة`, `/الإدارة/برامج`, l'espace élève et `/api/documents/*` (401) · connexion admin OK et mauvais mot de passe refusé · admin accède à tout · membre simple refusé de l'admin (307) mais admis dans l'espace élève · inscription d'un nouveau compte + connexion automatique + rôle `عضو` · déconnexion effective. Vérifié ensuite en production.
 
+## 🚫 Ne JAMAIS envoyer de texte arabe via curl sous Windows (2026-09-05)
+J'ai corrompu le titre du programme de Khaled en production avec un simple `curl -F "title=برنامج…"` : Git Bash sous Windows convertit l'arabe en points d'interrogation **avant l'envoi**, et la base enregistre `?????? ????? ????????`. Le symptôme trompeur — l'interface reste en arabe (textes statiques), seules les **données** deviennent des `?` — fait croire à un problème de police.
+**À faire à la place :** écrire toute donnée en arabe **via le navigateur** (`javascript_tool` sur la vraie page), ou depuis un script Node/Prisma lu en UTF-8. Pour tester une Server Action en curl, n'envoyer que des valeurs latines. Vérifier après coup : `xxd` sur la valeur renvoyée, les `3f` sont des points d'interrogation littéraux.
+Corollaire : un envoi partiel n'écrase que ce qu'il contient — les gardes `if (formData.get(...) === null) continue;` dans `lms-planning.ts` ont préservé les titres de séances de Khaled. Ne pas les retirer.
+
+## Aperçu administrateur d'une séance (2026-09-05)
+Khaled ne pouvait pas ouvrir sa propre séance programmée pour le mois suivant : le verrou s'appliquait aussi à lui. Désormais, sur `/تعلم/حصة/[slug]`, un éditeur (`canEdit`) accède à une séance **verrouillée ou d'un programme où il n'est pas inscrit**, avec un bandeau « عرض إداري ». En mode aperçu, le bouton « أتممت هذه الحصة » et le panneau de notes sont **masqués** — le serveur les refuserait, et afficher un bouton sans effet est exactement le défaut qu'on vient de corriger ailleurs. La route `/api/documents/[id]` applique déjà la même exception pour les éditeurs.
+
 ## Administration du e-learning : un seul formulaire par page (2026-09-05)
 **Refonte née d'une perte de données réelle.** Khaled a saisi plusieurs semaines et séances, cliqué sur un « حفظ », et tout perdu en changeant de page. Cause : la page d'un programme comptait **11 formulaires indépendants** (un par semaine, un par séance, un par bouton d'action) — un bouton n'enregistrait que son propre bloc — et **19 actions abandonnaient en silence**, sans le moindre message.
 
