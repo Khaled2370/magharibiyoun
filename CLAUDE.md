@@ -90,7 +90,14 @@ Types de contenu `EDUCATIONAL` et `LEARNING_PATH` greffés sur le socle généri
 **Le modèle s'appelle `ProgramSession`, jamais `Session`** — collision garantie avec le type `Session` de next-auth dans les fichiers qui utilisent les deux.
 **Contenu en arabe uniquement** (V1) : pas de table de traductions ici, contrairement à l'encyclopédie. Les libellés d'interface passent par le namespace `lms` de messages/{ar,fr,en}.json comme d'habitude.
 
-**Règle d'ouverture d'une séance** (`src/lib/lms.ts`) : accessible si `status ∈ {SCHEDULED, PUBLISHED}` **et** `maintenant ≥ max(semaine.opensAt, séance.publishAt)` — les deux verrous doivent être ouverts. `LOCKED` bloque toujours, `DRAFT` est invisible. Vérifié **côté serveur sur la page elle-même** et sur la route du PDF, pas seulement en masquant les liens.
+**Règle d'ouverture d'une séance** (`src/lib/lms.ts`, `isSessionOpen`) — **révisée le 2026-09-05** : chaque statut fait ce que son nom promet.
+- `DRAFT` : invisible partout, calendrier compris.
+- `LOCKED` : visible mais fermée quelle que soit la date (blocage manuel).
+- `PUBLISHED` : **ouverte maintenant**, la date n'est plus qu'une information de calendrier.
+- `SCHEDULED` : s'ouvre seule quand `maintenant ≥ max(semaine.opensAt, séance.publishAt)` — les deux verrous comptent.
+Avant cette révision, `PUBLISHED` et `SCHEDULED` étaient traités pareil : Khaled a mis deux séances en « منشورة » datées du mois suivant et elles sont restées fermées, ce qui est incompréhensible pour qui choisit « publiée ». Vérifié **côté serveur sur la page elle-même** et sur la route du PDF, pas seulement en masquant les liens.
+
+**Le mini-calendrier du tableau de bord renvoie vers `/تعلم/التقويم`** (prop `dayPathname`) : le tableau de bord n'affiche pas le détail d'un jour, donc cliquer une date y semblait sans effet.
 **Heure de référence unique** : UTC+1 (Maghreb central, pas de changement d'heure) — décalage fixe dans `lib/lms.ts`, pas de fuseau par utilisateur. `fromDateTimeInputs`/`toDateTimeInputs` convertissent les champs date+heure du formulaire admin.
 **Progression** : séances obligatoires terminées ÷ toutes les séances obligatoires non-brouillon du programme (y compris pas encore ouvertes). Jamais stockée, toujours recalculée. « تابع المشاهدة » = première séance ouverte non terminée (pas de suivi « commencé » en V1).
 

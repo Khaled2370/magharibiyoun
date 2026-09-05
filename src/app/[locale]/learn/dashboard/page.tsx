@@ -202,6 +202,7 @@ export default async function LearnDashboardPage({
           year={year}
           month={month}
           pathname="/learn/dashboard"
+          dayPathname="/learn/calendar"
           compact
         />
       </section>

@@ -146,12 +146,28 @@ export function effectiveUnlockAt(
   return new Date(Math.max(...dates.map((d) => d.getTime())));
 }
 
+/**
+ * Une séance est-elle accessible aux élèves ?
+ *
+ * Sémantique des quatre statuts, choisie pour coller à ce que le mot affiche :
+ *  - DRAFT     : invisible partout, y compris dans le calendrier.
+ *  - LOCKED    : visible mais fermée, quelle que soit la date (blocage manuel).
+ *  - PUBLISHED : **ouverte maintenant**, la date n'est plus qu'une information
+ *                de calendrier. C'est ce qu'attend l'admin quand il choisit
+ *                « منشورة » (corrigé le 2026-09-05 : les deux statuts étaient
+ *                auparavant traités pareil, une séance « publiée » datée du
+ *                mois suivant restait fermée, ce qui n'avait aucun sens).
+ *  - SCHEDULED : s'ouvre toute seule à la date prévue — les deux verrous
+ *                doivent être atteints, celui de la semaine et celui de la
+ *                séance.
+ */
 export function isSessionOpen(
   session: Pick<ProgramSession, "status" | "publishAt">,
   week: Pick<ProgramWeek, "opensAt">,
   now: Date = new Date(),
 ): boolean {
   if (session.status === "DRAFT" || session.status === "LOCKED") return false;
+  if (session.status === "PUBLISHED") return true;
   const unlock = effectiveUnlockAt(session, week);
   return !unlock || unlock.getTime() <= now.getTime();
 }

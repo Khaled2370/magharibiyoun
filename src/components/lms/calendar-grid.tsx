@@ -32,6 +32,7 @@ export default async function CalendarGrid({
   year,
   month,
   pathname,
+  dayPathname,
   selectedDay,
   compact = false,
 }: {
@@ -40,9 +41,16 @@ export default async function CalendarGrid({
   year: number;
   month: number;
   pathname: Pathname;
+  /**
+   * Page vers laquelle mène le clic sur un jour. Sur le tableau de bord, le
+   * mini-calendrier renvoie vers le calendrier complet : la page d'accueil
+   * n'affiche pas le détail d'un jour, et cliquer y semblait sans effet.
+   */
+  dayPathname?: Pathname;
   selectedDay?: string;
   compact?: boolean;
 }) {
+  const dayTarget = dayPathname ?? pathname;
   const t = await getTranslations("lms");
   const monthLabel = new Intl.DateTimeFormat(locale === "ar" ? "ar-TN" : locale, {
     month: "long",
@@ -105,7 +113,7 @@ export default async function CalendarGrid({
             <Link
               key={cell.key}
               href={{
-                pathname,
+                pathname: dayTarget,
                 query: { year: String(year), month: String(month), day: cell.key },
               }}
               className={`${base} transition-opacity hover:opacity-80`}
