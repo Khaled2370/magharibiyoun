@@ -17,6 +17,7 @@ import { MAX_UPLOAD_BYTES } from "@/lib/cloudinary";
 import { saveSessionPage } from "@/actions/lms-planning";
 import FileField from "@/components/admin/file-field";
 import UnsavedGuard from "@/components/admin/unsaved-guard";
+import { FormPending, ScrollToNew } from "@/components/admin/form-feedback";
 import { Link } from "@/i18n/navigation";
 
 const SESSION_STATUSES = ["DRAFT", "SCHEDULED", "PUBLISHED", "LOCKED"] as const;
@@ -53,7 +54,7 @@ export default async function AdminSessionPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; id: string; sessionId: string }>;
-  searchParams: Promise<{ msg?: string }>;
+  searchParams: Promise<{ msg?: string; new?: string }>;
 }) {
   const { locale, id, sessionId } = await params;
   setRequestLocale(locale);
@@ -88,6 +89,7 @@ export default async function AdminSessionPage({
       <h1 className="mb-6 mt-1 text-2xl font-medium sm:text-3xl">{t("adminEditSession")}</h1>
 
       <UnsavedGuard formId={FORM_ID} label={t("unsavedWarning")} />
+      {sp.new ? <ScrollToNew targetId={`block-${sp.new}`} /> : null}
 
       {good.length > 0 ? (
         <p className="mb-3 rounded-lg bg-oasisl px-4 py-2.5 text-sm text-oasis">
@@ -103,6 +105,7 @@ export default async function AdminSessionPage({
       {/* UN SEUL formulaire : réglages + tous les blocs. Les boutons d'ajout,
           de déplacement et de suppression enregistrent d'abord la saisie. */}
       <form action={saveSessionPage} id={FORM_ID} className="space-y-8">
+        <FormPending label={t("savingInProgress")} />
         <input type="hidden" name="uiLocale" value={locale} />
         <input type="hidden" name="programId" value={programId} />
         <input type="hidden" name="sessionId" value={session.id} />
@@ -250,7 +253,15 @@ export default async function AdminSessionPage({
           ) : (
             <div className="mt-4 space-y-4">
               {session.blocks.map((block, i) => (
-                <section key={block.id} className="rounded-xl border border-ligne bg-white p-5">
+                <section
+                  key={block.id}
+                  id={`block-${block.id}`}
+                  className={`rounded-xl border bg-white p-5 ${
+                    sp.new === String(block.id)
+                      ? "border-majorelle ring-2 ring-majorelle"
+                      : "border-ligne"
+                  }`}
+                >
                   <input type="hidden" name={`block_${block.id}_present`} value="1" />
 
                   <header className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-ligne pb-2">

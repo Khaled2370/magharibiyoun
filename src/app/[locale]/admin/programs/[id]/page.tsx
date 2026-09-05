@@ -10,6 +10,7 @@ import { deleteProgram } from "@/actions/lms-admin";
 import ConfirmSubmit from "@/components/lms/confirm-submit";
 import FileField from "@/components/admin/file-field";
 import UnsavedGuard from "@/components/admin/unsaved-guard";
+import { FormPending } from "@/components/admin/form-feedback";
 import { Link } from "@/i18n/navigation";
 
 const WEEK_KINDS = ["LEARNING", "REVIEW", "EXAM"] as const;
@@ -120,6 +121,7 @@ export default async function AdminProgramPage({
       {/* UN SEUL formulaire pour toute la page : chaque bouton enregistre
           d'abord la saisie, puis exécute son opération via le champ « op ». */}
       <form action={saveProgramPlanning} id={FORM_ID} className="space-y-8">
+        <FormPending label={t("savingInProgress")} />
         <input type="hidden" name="uiLocale" value={locale} />
         <input type="hidden" name="programId" value={program.id} />
 

@@ -539,6 +539,7 @@ export async function saveSessionPage(formData: FormData) {
   const on = (n: string) => formData.get(n) === "on";
 
   const messages: string[] = [];
+  let newBlockId: number | null = null;
   const op = parseBlockOp(str("op"));
 
   const session = await prisma.programSession.findUnique({
@@ -639,13 +640,14 @@ export async function saveSessionPage(formData: FormData) {
         orderBy: { sortOrder: "desc" },
         select: { sortOrder: true },
       });
-      await prisma.contentBlock.create({
+      const created = await prisma.contentBlock.create({
         data: {
           sessionId,
           type: op.type,
           sortOrder: (last?.sortOrder ?? -1) + 1,
         },
       });
+      newBlockId = created.id;
       messages.push("blockAdded");
       break;
     }
@@ -690,7 +692,10 @@ export async function saveSessionPage(formData: FormData) {
     href: {
       pathname: "/admin/programs/[id]/sessions/[sessionId]",
       params: { id: String(programId), sessionId: String(sessionId) },
-      query: { msg: messages.join(",") },
+      query: {
+        msg: messages.join(","),
+        ...(newBlockId ? { new: String(newBlockId) } : {}),
+      },
     },
     locale,
   });

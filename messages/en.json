@@ -460,7 +460,8 @@
     "adminPreview": "Admin preview — this session is not open to students yet. You can see it because you are an administrator.",
     "adminPreviewNotEnrolled": "Admin preview — you are not enrolled in this program, but you can see it as an administrator.",
     "watchOnYoutube": "Watch on YouTube",
-    "adminLinkYoutubeHint": "If the link is from YouTube, the video is played directly in the page."
+    "adminLinkYoutubeHint": "If the link is from YouTube, the video is played directly in the page.",
+    "savingInProgress": "Saving…"
   },
   "auth": {
     "loginTitle": "Sign in",
