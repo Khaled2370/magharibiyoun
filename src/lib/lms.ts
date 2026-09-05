@@ -35,6 +35,18 @@ export function todayKey(now: Date = new Date()): string {
   return dayKey(now);
 }
 
+/**
+ * Opération inverse de `dayKey` : « 2026-10-08 » → un instant de ce jour-là.
+ * Fixé à midi UTC pour que le formatage retombe sur le bon jour quel que soit
+ * le décalage appliqué ensuite. Sert à afficher une date en toutes lettres
+ * quand on ne dispose que de la clé.
+ */
+export function dateFromDayKey(key: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!m) return null;
+  return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12));
+}
+
 /** Champs date + heure d'un formulaire admin → instant réel (stocké en UTC). */
 export function fromDateTimeInputs(
   dateStr: string | null,

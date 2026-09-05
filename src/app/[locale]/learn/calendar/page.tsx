@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/authz";
 import {
   buildCalendar,
   completedSessionIds,
+  dateFromDayKey,
   fmtSessionDate,
   getEnrolledPrograms,
   pickActiveProgram,
@@ -58,7 +59,10 @@ export default async function LearnCalendarPage({
 
   const selectedKey = sp.day ?? today;
   const selectedCell = cells.find((c) => c.key === selectedKey);
-  const selectedDate = selectedCell?.date ?? null;
+  // Le jour sélectionné peut être hors du mois affiché (on arrive sur le
+  // calendrier « aujourd'hui », puis on feuillette). Sans ce repli, le titre
+  // affichait la date brute « 2026-09-05 » au lieu d'une date en toutes lettres.
+  const selectedDate = selectedCell?.date ?? dateFromDayKey(selectedKey);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
