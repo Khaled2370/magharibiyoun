@@ -9,7 +9,7 @@ import {
   Video,
 } from "lucide-react";
 import type { BlockWithMedia } from "@/lib/lms";
-import { renderMarkdown, proseClass } from "@/lib/markdown";
+import Markdown from "./markdown";
 import YoutubeEmbed from "@/components/content/youtube-embed";
 import PdfBlock from "./pdf-block";
 
@@ -59,10 +59,7 @@ export default async function ContentBlockRenderer({
     return (
       <section>
         {heading}
-        <div
-          className={proseClass}
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(block.textBody) }}
-        />
+        <Markdown source={block.textBody} />
       </section>
     );
   }
