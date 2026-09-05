@@ -453,7 +453,20 @@
     "welcome": "Bienvenue {name}",
     "roles": "Rôles",
     "memberSince": "Membre depuis",
-    "contributionsSoon": "Vos contributions et favoris apparaîtront ici prochainement."
+    "contributionsSoon": "Vos contributions et favoris apparaîtront ici prochainement.",
+    "changePassword": "Changer mon mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "passwordHint": "8 caracteres minimum. Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.",
+    "changeSubmit": "Mettre a jour",
+    "changePending": "Mise a jour…",
+    "changeSuccess": "Mot de passe mis a jour.",
+    "errRequired": "Veuillez remplir tous les champs.",
+    "errTooShort": "Le nouveau mot de passe doit faire au moins 8 caracteres.",
+    "errMismatch": "Les deux nouveaux mots de passe ne correspondent pas.",
+    "errWrongPassword": "Le mot de passe actuel est incorrect.",
+    "errGeneric": "Une erreur est survenue. Reessayez."
   },
   "stub": {
     "wip": "Cette rubrique est en construction — elle ouvrira progressivement avec le lancement de la plateforme.",

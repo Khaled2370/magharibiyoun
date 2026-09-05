@@ -453,7 +453,20 @@
     "welcome": "Welcome {name}",
     "roles": "Roles",
     "memberSince": "Member since",
-    "contributionsSoon": "Your contributions and favourites will appear here soon."
+    "contributionsSoon": "Your contributions and favourites will appear here soon.",
+    "changePassword": "Change my password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "passwordHint": "At least 8 characters. Pick one you do not use anywhere else.",
+    "changeSubmit": "Update password",
+    "changePending": "Updating…",
+    "changeSuccess": "Password updated.",
+    "errRequired": "Please fill in every field.",
+    "errTooShort": "The new password must be at least 8 characters.",
+    "errMismatch": "The two new passwords do not match.",
+    "errWrongPassword": "The current password is incorrect.",
+    "errGeneric": "Something went wrong. Please try again."
   },
   "stub": {
     "wip": "This section is under construction — it will open gradually as the platform launches.",
