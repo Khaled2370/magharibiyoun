@@ -429,7 +429,7 @@
     "saveAll": "حفظ كل التغييرات",
     "unsavedWarning": "لديك تعديلات غير محفوظة — اضغط «حفظ كل التغييرات» قبل مغادرة الصفحة.",
     "addSessionsLabel": "إضافة حصص (عنوان في كل سطر)",
-    "addSessionsHint": "يمكنك لصق عدة عناوين دفعة واحدة، سطر لكل حصة.",
+    "addSessionsHint": "يمكنك لصق عدة عناوين دفعة واحدة، سطر لكل حصة. تُنشأ الحصص كمسودات: لا تظهر للطلبة حتى تغيّر حالتها إلى «منشورة» أو «مبرمجة».",
     "sessionDate": "التاريخ",
     "sessionTime": "الساعة",
     "openSessionEditor": "المحتوى",
@@ -461,7 +461,14 @@
     "adminPreviewNotEnrolled": "عرض إداري — أنت غير مسجّل في هذا البرنامج، لكنك تراه بصفتك مسؤولاً.",
     "watchOnYoutube": "المشاهدة على يوتيوب",
     "adminLinkYoutubeHint": "إذا كان الرابط من يوتيوب، سيُعرض الفيديو مباشرة داخل الصفحة.",
-    "savingInProgress": "جارٍ الحفظ…"
+    "savingInProgress": "جارٍ الحفظ…",
+    "adminVisibleNow": "مرئية للطلبة الآن",
+    "adminOpensOn": "تفتح للطلبة يوم {date}",
+    "adminHiddenLocked": "مقفلة — غير متاحة للطلبة",
+    "adminHiddenDraft": "مسودة — لا تظهر للطلبة",
+    "adminActivateDrafts": "إظهار المسودات للطلبة",
+    "msgDraftsActivated": "أصبحت مسودات هذا الأسبوع مرئية للطلبة.",
+    "msgNoDrafts": "لا توجد مسودات في هذا الأسبوع."
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",

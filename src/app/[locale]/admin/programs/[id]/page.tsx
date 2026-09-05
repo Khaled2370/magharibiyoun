@@ -3,7 +3,13 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ChevronDown, ChevronUp, Plus, Save } from "lucide-react";
 import { requireEditor } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
-import { programStructureInclude, toDateTimeInputs } from "@/lib/lms";
+import {
+  effectiveUnlockAt,
+  fmtSessionDateTime,
+  lockReason,
+  programStructureInclude,
+  toDateTimeInputs,
+} from "@/lib/lms";
 import { MAX_UPLOAD_BYTES } from "@/lib/cloudinary";
 import { saveProgramPlanning } from "@/actions/lms-planning";
 import { deleteProgram } from "@/actions/lms-admin";
@@ -41,6 +47,8 @@ const MSG_KEYS: Record<string, string> = {
   sessionPublished: "msgSessionPublished",
   sessionLocked: "msgSessionLocked",
   sessionUnlocked: "msgSessionUnlocked",
+  draftsActivated: "msgDraftsActivated",
+  noDrafts: "msgNoDrafts",
   alreadyAtEdge: "msgAlreadyAtEdge",
   noSessionTitle: "msgNoSessionTitle",
   noTargetWeek: "msgNoTargetWeek",
@@ -49,6 +57,7 @@ const MSG_KEYS: Record<string, string> = {
   uploadFailed: "msgUploadFailed",
 };
 const PROBLEMS = new Set([
+  "noDrafts",
   "alreadyAtEdge",
   "noSessionTitle",
   "noTargetWeek",
@@ -56,6 +65,35 @@ const PROBLEMS = new Set([
   "uploadConfig",
   "uploadFailed",
 ]);
+
+/** Couleur du badge « ce que voit l'élève », par situation réelle. */
+const VISIBILITY_CLASS: Record<ReturnType<typeof lockReason>, string> = {
+  open: "bg-oasisl text-oasis",
+  scheduled: "bg-sable2 text-mutedink",
+  locked: "bg-terracottal text-terracotta",
+  draft: "bg-terracottal text-terracotta",
+};
+
+function visibilityLabel(
+  t: (k: string, v?: Record<string, string>) => string,
+  session: Parameters<typeof lockReason>[0],
+  week: Parameters<typeof lockReason>[1],
+  now: Date,
+  locale: string,
+): string {
+  switch (lockReason(session, week, now)) {
+    case "open":
+      return t("adminVisibleNow");
+    case "scheduled":
+      return t("adminOpensOn", {
+        date: fmtSessionDateTime(locale, effectiveUnlockAt(session, week)),
+      });
+    case "locked":
+      return t("adminHiddenLocked");
+    default:
+      return t("adminHiddenDraft");
+  }
+}
 
 export default async function AdminProgramPage({
   params,
@@ -84,6 +122,8 @@ export default async function AdminProgramPage({
     ? await prisma.mediaFile.findUnique({ where: { id: program.coverMediaId } })
     : null;
 
+  // Une seule référence de temps pour tous les badges de la page.
+  const now = new Date();
   const messages = (sp.msg ?? "").split(",").filter(Boolean);
   const good = messages.filter((m) => !PROBLEMS.has(m));
   const bad = messages.filter((m) => PROBLEMS.has(m));
@@ -294,6 +334,16 @@ export default async function AdminProgramPage({
                       >
                         <ChevronDown className="h-3.5 w-3.5" aria-hidden />
                       </button>
+                      {week.sessions.some((s) => s.status === "DRAFT") ? (
+                        <button
+                          type="submit"
+                          name="op"
+                          value={`weekActivateDrafts:${week.id}`}
+                          className="rounded-lg border border-oasis px-2.5 py-1 text-xs font-medium text-oasis transition-colors hover:bg-oasisl"
+                        >
+                          {t("adminActivateDrafts")}
+                        </button>
+                      ) : null}
                       <button
                         type="submit"
                         name="op"
@@ -358,6 +408,17 @@ export default async function AdminProgramPage({
                                   {t("openSessionEditor")}
                                 </Link>
                               </div>
+
+                              {/* Ce que l'élève voit réellement. Sans ce rappel,
+                                  une séance datée mais restée en brouillon semble
+                                  « disparaître » du planning côté élève. */}
+                              <p
+                                className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                  VISIBILITY_CLASS[lockReason(s, week, now)]
+                                }`}
+                              >
+                                {visibilityLabel(t, s, week, now, locale)}
+                              </p>
 
                               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                                 <button

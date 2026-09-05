@@ -429,7 +429,7 @@
     "saveAll": "Save all changes",
     "unsavedWarning": "You have unsaved changes — click Save all changes before leaving this page.",
     "addSessionsLabel": "Add sessions (one title per line)",
-    "addSessionsHint": "You can paste several titles at once, one line per session.",
+    "addSessionsHint": "You can paste several titles at once, one line per session. Sessions are created as drafts: they stay hidden from students until their status is set to published or scheduled.",
     "sessionDate": "Date",
     "sessionTime": "Time",
     "openSessionEditor": "Content",
@@ -461,7 +461,14 @@
     "adminPreviewNotEnrolled": "Admin preview — you are not enrolled in this program, but you can see it as an administrator.",
     "watchOnYoutube": "Watch on YouTube",
     "adminLinkYoutubeHint": "If the link is from YouTube, the video is played directly in the page.",
-    "savingInProgress": "Saving…"
+    "savingInProgress": "Saving…",
+    "adminVisibleNow": "Visible to students now",
+    "adminOpensOn": "Opens on {date}",
+    "adminHiddenLocked": "Locked — not available to students",
+    "adminHiddenDraft": "Draft — hidden from students",
+    "adminActivateDrafts": "Make drafts visible",
+    "msgDraftsActivated": "This week's drafts are now visible to students.",
+    "msgNoDrafts": "No drafts in this week."
   },
   "auth": {
     "loginTitle": "Sign in",

@@ -16,7 +16,7 @@ import {
   uploadDocument,
   uploadImage,
 } from "@/lib/cloudinary";
-import { fromDateTimeInputs } from "@/lib/lms";
+import { effectiveUnlockAt, fromDateTimeInputs } from "@/lib/lms";
 import { redirect } from "@/i18n/navigation";
 
 /**
@@ -37,7 +37,7 @@ import { redirect } from "@/i18n/navigation";
 type Op =
   | { kind: "none" }
   | { kind: "weekAdd" }
-  | { kind: "weekUp" | "weekDown" | "weekDelete"; id: number }
+  | { kind: "weekUp" | "weekDown" | "weekDelete" | "weekActivateDrafts"; id: number }
   | { kind: "sessionAdd"; weekId: number }
   | {
       kind:
@@ -62,6 +62,7 @@ function parseOp(raw: string | null): Op {
     case "weekUp":
     case "weekDown":
     case "weekDelete":
+    case "weekActivateDrafts":
       return Number.isNaN(id) ? { kind: "none" } : { kind, id };
     case "sessionAdd":
       return Number.isNaN(id) ? { kind: "none" } : { kind: "sessionAdd", weekId: id };
@@ -293,6 +294,40 @@ export async function saveProgramPlanning(formData: FormData) {
       await prisma.programWeek.delete({ where: { id: op.id } });
       await renumberWeeks(programId);
       messages.push("weekDeleted");
+      break;
+    }
+
+    /**
+     * « Rendre visibles les brouillons de cette semaine ».
+     *
+     * Les séances créées en lot naissent en brouillon — donc invisibles pour
+     * les élèves. Khaled a signalé (2026-09-05) une séance datée qui
+     * n'apparaissait nulle part : c'était ça. Les publier une par une devient
+     * pénible quand on en ajoute dix d'un coup.
+     *
+     * Chaque brouillon prend le statut qui correspond à sa date : « mbrmja »
+     * (programmée) si l'ouverture est encore devant nous, « publiée » sinon.
+     * Même règle que le bouton « fatḥ » d'une séance verrouillée.
+     */
+    case "weekActivateDrafts": {
+      const week = await prisma.programWeek.findUnique({
+        where: { id: op.id },
+        include: { sessions: { where: { status: "DRAFT" } } },
+      });
+      if (!week) break;
+      if (week.sessions.length === 0) {
+        messages.push("noDrafts");
+        break;
+      }
+      const now = Date.now();
+      for (const s of week.sessions) {
+        const unlock = effectiveUnlockAt(s, week);
+        await prisma.programSession.update({
+          where: { id: s.id },
+          data: { status: unlock && unlock.getTime() > now ? "SCHEDULED" : "PUBLISHED" },
+        });
+      }
+      messages.push("draftsActivated");
       break;
     }
 

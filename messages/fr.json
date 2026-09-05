@@ -429,7 +429,7 @@
     "saveAll": "Enregistrer toutes les modifications",
     "unsavedWarning": "Vous avez des modifications non enregistrees — cliquez sur « Enregistrer toutes les modifications » avant de quitter la page.",
     "addSessionsLabel": "Ajouter des seances (un titre par ligne)",
-    "addSessionsHint": "Vous pouvez coller plusieurs titres d un coup, une ligne par seance.",
+    "addSessionsHint": "Vous pouvez coller plusieurs titres d'un coup, une ligne par séance. Les séances sont créées en brouillon : elles n'apparaissent pas chez les élèves tant que leur statut n'est pas « publiée » ou « programmée ».",
     "sessionDate": "Date",
     "sessionTime": "Heure",
     "openSessionEditor": "Contenu",
@@ -461,7 +461,14 @@
     "adminPreviewNotEnrolled": "Apercu administrateur — vous n etes pas inscrit a ce programme, mais vous le voyez en tant qu administrateur.",
     "watchOnYoutube": "Regarder sur YouTube",
     "adminLinkYoutubeHint": "Si le lien vient de YouTube, la video sera lue directement dans la page.",
-    "savingInProgress": "Enregistrement en cours…"
+    "savingInProgress": "Enregistrement en cours…",
+    "adminVisibleNow": "Visible par les élèves",
+    "adminOpensOn": "S'ouvre le {date}",
+    "adminHiddenLocked": "Verrouillée — non accessible aux élèves",
+    "adminHiddenDraft": "Brouillon — n'apparaît pas chez les élèves",
+    "adminActivateDrafts": "Rendre les brouillons visibles",
+    "msgDraftsActivated": "Les brouillons de cette semaine sont maintenant visibles par les élèves.",
+    "msgNoDrafts": "Aucun brouillon dans cette semaine."
   },
   "auth": {
     "loginTitle": "Connexion",
