@@ -116,6 +116,19 @@ La faille qui concernait réellement ce projet : **GHSA-8fpg-xm3f-6cx3** — une
 
 **Parcours re-testé intégralement après la mise à jour** (build de production local, `npx next start -p 3010`) : anonyme refusé sur `/الإدارة`, `/الإدارة/برامج`, l'espace élève et `/api/documents/*` (401) · connexion admin OK et mauvais mot de passe refusé · admin accède à tout · membre simple refusé de l'admin (307) mais admis dans l'espace élève · inscription d'un nouveau compte + connexion automatique + rôle `عضو` · déconnexion effective. Vérifié ensuite en production.
 
+## Administration du e-learning : un seul formulaire par page (2026-09-05)
+**Refonte née d'une perte de données réelle.** Khaled a saisi plusieurs semaines et séances, cliqué sur un « حفظ », et tout perdu en changeant de page. Cause : la page d'un programme comptait **11 formulaires indépendants** (un par semaine, un par séance, un par bouton d'action) — un bouton n'enregistrait que son propre bloc — et **19 actions abandonnaient en silence**, sans le moindre message.
+
+**Règle désormais, à ne pas défaire : une page = un formulaire = une action.**
+- `src/actions/lms-planning.ts` : `saveProgramPlanning` (page programme) et `saveSessionPage` (page séance). Chaque envoi **enregistre tout ce qui est à l'écran**, puis applique l'opération demandée, transmise par le bouton pressé dans un champ `op` (`weekDown:12`, `sessionAdd:4`, `blockAdd:TEXT`…). Conséquence : cliquer sur « descendre » ou « supprimer » ne fait plus jamais perdre la saisie en cours.
+- Chaque action renvoie une liste de messages (`?msg=saved,weekMoved`) affichés en vert (succès) ou en terracotta (problème). **Plus aucun abandon muet.**
+- `src/components/admin/unsaved-guard.tsx` : bandeau collant dès la première frappe + boîte de dialogue native si on quitte sans enregistrer.
+- Répartition des rôles : **page programme = planning** (semaines, dates d'ouverture, titres/dates/statuts des séances), **page séance = contenu** (réglages + blocs). Ajout de plusieurs séances d'un coup via un textarea, un titre par ligne.
+
+**Piège corrigé au passage : `Number(null)` vaut `0`, pas `NaN`.** Les gardes `if (Number.isNaN(id)) return;` ne rattrapaient donc pas un champ absent : l'action partait avec l'identifiant 0 et produisait une erreur 500 au lieu d'un abandon propre. Utiliser `idField(formData, name)` dans `lms-admin.ts`, qui renvoie `null` si le champ manque ou n'est pas un identifiant positif.
+
+**Piège de test :** une page d'admin contient plusieurs Server Actions, donc plusieurs `$ACTION_ID_…` dans le HTML. Pour rejouer un formulaire en curl, prendre celui **situé après** l'attribut `id="…"` du formulaire visé — sinon on déclenche l'action de suppression sans s'en rendre compte.
+
 ## ⚠️ « Application error » à l'envoi d'un formulaire : limite de poids (2026-09-04/05)
 Symptôme : Khaled remplit un formulaire du back-office, l'envoie, et obtient une page blanche « Application error: a server-side exception has occurred » avec un Digest en `@E394`. **Cause réelle : le fichier joint dépassait la limite de corps des Server Actions (1 Mo par défaut).** Reproduit en production avec une image de 2,55 Mo.
 Corrigé par trois choses, à ne pas défaire : `bodySizeLimit: "4mb"` dans `next.config.ts` (4 Mo = maximum utile, Vercel plafonnant le corps d'une requête à 4,5 Mo), le composant client **`src/components/admin/file-field.tsx`** qui refuse le fichier *avant* l'envoi avec un message explicite (branché sur les trois formulaires à fichier), et les limites alignées à `MAX_UPLOAD_BYTES` dans `lib/cloudinary.ts`. Pour dépasser 4 Mo un jour, il faudra un envoi direct navigateur → Cloudinary (signature côté serveur), pas une Server Action.
