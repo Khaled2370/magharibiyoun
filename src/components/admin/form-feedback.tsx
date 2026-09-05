@@ -38,7 +38,11 @@ export function ScrollToNew({ targetId }: { targetId: string }) {
   useEffect(() => {
     const el = document.getElementById(targetId);
     if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // « start » et non « center » : un bloc peut être plus haut que l'écran,
+    // et le centrer ferait sortir son en-tête par le haut. La marge dégage
+    // l'en-tête collant du site.
+    const top = el.getBoundingClientRect().top + window.scrollY - 90;
+    window.scrollTo({ top, behavior: "smooth" });
   }, [targetId]);
   return null;
 }
