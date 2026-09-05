@@ -17,7 +17,8 @@ import ConfirmSubmit from "@/components/lms/confirm-submit";
 import FileField from "@/components/admin/file-field";
 import UnsavedGuard from "@/components/admin/unsaved-guard";
 import { FormPending } from "@/components/admin/form-feedback";
-import { Link } from "@/i18n/navigation";
+import BackLink from "@/components/admin/back-link";
+import { getPathname, Link } from "@/i18n/navigation";
 
 const WEEK_KINDS = ["LEARNING", "REVIEW", "EXAM"] as const;
 const SESSION_STATUSES = ["DRAFT", "SCHEDULED", "PUBLISHED", "LOCKED"] as const;
@@ -130,6 +131,11 @@ export default async function AdminProgramPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
+      <BackLink
+        href={getPathname({ locale, href: "/admin/programs" })}
+        label={t("adminBackToPrograms")}
+        confirmText={t("unsavedLeaveConfirm")}
+      />
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-medium sm:text-3xl">{t("adminEditProgram")}</h1>
         <ConfirmSubmit

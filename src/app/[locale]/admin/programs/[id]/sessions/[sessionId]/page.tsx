@@ -18,7 +18,8 @@ import { saveSessionPage } from "@/actions/lms-planning";
 import FileField from "@/components/admin/file-field";
 import UnsavedGuard from "@/components/admin/unsaved-guard";
 import { FormPending, ScrollToNew } from "@/components/admin/form-feedback";
-import { Link } from "@/i18n/navigation";
+import BackLink from "@/components/admin/back-link";
+import { getPathname, Link } from "@/i18n/navigation";
 
 const SESSION_STATUSES = ["DRAFT", "SCHEDULED", "PUBLISHED", "LOCKED"] as const;
 const LINK_KINDS = ["ARTICLE", "SITE", "PODCAST", "VIDEO", "DOCUMENT", "OTHER"] as const;
@@ -85,6 +86,14 @@ export default async function AdminSessionPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
+      <BackLink
+        href={getPathname({
+          locale,
+          href: { pathname: "/admin/programs/[id]", params: { id: String(programId) } },
+        })}
+        label={t("adminBackToProgram")}
+        confirmText={t("unsavedLeaveConfirm")}
+      />
       <p className="text-xs text-mutedink">{session.week.program.title}</p>
       <h1 className="mb-6 mt-1 text-2xl font-medium sm:text-3xl">{t("adminEditSession")}</h1>
 

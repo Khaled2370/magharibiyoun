@@ -468,7 +468,8 @@
     "adminHiddenDraft": "مسودة — لا تظهر للطلبة",
     "adminActivateDrafts": "إظهار المسودات للطلبة",
     "msgDraftsActivated": "أصبحت مسودات هذا الأسبوع مرئية للطلبة.",
-    "msgNoDrafts": "لا توجد مسودات في هذا الأسبوع."
+    "msgNoDrafts": "لا توجد مسودات في هذا الأسبوع.",
+    "unsavedLeaveConfirm": "لديك تغييرات غير محفوظة. هل تريد المغادرة دون حفظها؟"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",

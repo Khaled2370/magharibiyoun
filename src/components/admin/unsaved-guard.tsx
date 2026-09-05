@@ -41,6 +41,10 @@ export default function UnsavedGuard({
 
   useEffect(() => {
     if (!dirty) return;
+    // Drapeau lisible par les autres composants de la page — `BackLink` s'en
+    // sert pour demander confirmation, `beforeunload` ne couvrant pas les
+    // navigations internes.
+    document.documentElement.dataset.unsavedForm = formId;
     const warn = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       // Les navigateurs affichent leur propre texte ; il faut néanmoins
@@ -48,8 +52,11 @@ export default function UnsavedGuard({
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+    return () => {
+      delete document.documentElement.dataset.unsavedForm;
+      window.removeEventListener("beforeunload", warn);
+    };
+  }, [dirty, formId]);
 
   if (!dirty) return null;
 

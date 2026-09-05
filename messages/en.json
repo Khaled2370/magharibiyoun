@@ -468,7 +468,8 @@
     "adminHiddenDraft": "Draft — hidden from students",
     "adminActivateDrafts": "Make drafts visible",
     "msgDraftsActivated": "This week's drafts are now visible to students.",
-    "msgNoDrafts": "No drafts in this week."
+    "msgNoDrafts": "No drafts in this week.",
+    "unsavedLeaveConfirm": "You have unsaved changes. Leave without saving?"
   },
   "auth": {
     "loginTitle": "Sign in",

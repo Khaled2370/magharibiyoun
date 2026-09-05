@@ -468,7 +468,8 @@
     "adminHiddenDraft": "Brouillon — n'apparaît pas chez les élèves",
     "adminActivateDrafts": "Rendre les brouillons visibles",
     "msgDraftsActivated": "Les brouillons de cette semaine sont maintenant visibles par les élèves.",
-    "msgNoDrafts": "Aucun brouillon dans cette semaine."
+    "msgNoDrafts": "Aucun brouillon dans cette semaine.",
+    "unsavedLeaveConfirm": "Des modifications ne sont pas enregistrées. Quitter la page sans les enregistrer ?"
   },
   "auth": {
     "loginTitle": "Connexion",
