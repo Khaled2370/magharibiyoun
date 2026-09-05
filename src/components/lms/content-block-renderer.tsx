@@ -9,6 +9,7 @@ import {
   Video,
 } from "lucide-react";
 import type { BlockWithMedia } from "@/lib/lms";
+import { youtubeId } from "@/lib/content";
 import Markdown from "./markdown";
 import YoutubeEmbed from "@/components/content/youtube-embed";
 import PdfBlock from "./pdf-block";
@@ -21,6 +22,20 @@ const LINK_ICONS = {
   DOCUMENT: FileText,
   OTHER: Link2,
 } as const;
+
+function WatchOnYoutube({ url, label }: { url: string; label: string }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 inline-flex items-center gap-1.5 text-sm text-mutedink transition-colors hover:text-majorelle"
+    >
+      <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+      {label}
+    </a>
+  );
+}
 
 export default async function ContentBlockRenderer({
   block,
@@ -39,6 +54,7 @@ export default async function ContentBlockRenderer({
       <section>
         {heading}
         <YoutubeEmbed url={block.videoUrl} title={block.videoTitle ?? block.title ?? ""} />
+        <WatchOnYoutube url={block.videoUrl} label={t("watchOnYoutube")} />
         {(block.videoTitle || block.videoInstructor || block.videoDurationMin) && (
           <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-mutedink">
             {block.videoTitle ? (
@@ -100,6 +116,24 @@ export default async function ContentBlockRenderer({
 
   if (block.type === "LINK") {
     if (!block.linkUrl) return null;
+
+    // Une adresse YouTube collee comme simple lien est lue directement dans la
+    // page : c'est manifestement ce qu'on veut quand on met une video, et ca
+    // evite d'avoir a connaitre la difference entre un bloc « video » et un
+    // bloc « lien » de type video.
+    if (youtubeId(block.linkUrl)) {
+      return (
+        <section>
+          {heading}
+          <YoutubeEmbed url={block.linkUrl} title={block.linkLabel ?? block.title ?? ""} />
+          {block.linkLabel ? (
+            <p className="mt-2 font-medium text-encre">{block.linkLabel}</p>
+          ) : null}
+          <WatchOnYoutube url={block.linkUrl} label={t("watchOnYoutube")} />
+        </section>
+      );
+    }
+
     const Icon = LINK_ICONS[block.linkKind ?? "OTHER"];
     return (
       <section>

@@ -458,7 +458,9 @@
     "sessionSettings": "Reglages de la seance",
     "sessionContentIntro": "Ajoutez les blocs que vous voulez, puis cliquez une seule fois sur « Enregistrer toutes les modifications » en bas.",
     "adminPreview": "Apercu administrateur — cette seance n est pas encore accessible aux eleves. Vous la voyez parce que vous etes administrateur.",
-    "adminPreviewNotEnrolled": "Apercu administrateur — vous n etes pas inscrit a ce programme, mais vous le voyez en tant qu administrateur."
+    "adminPreviewNotEnrolled": "Apercu administrateur — vous n etes pas inscrit a ce programme, mais vous le voyez en tant qu administrateur.",
+    "watchOnYoutube": "Regarder sur YouTube",
+    "adminLinkYoutubeHint": "Si le lien vient de YouTube, la video sera lue directement dans la page."
   },
   "auth": {
     "loginTitle": "Connexion",
